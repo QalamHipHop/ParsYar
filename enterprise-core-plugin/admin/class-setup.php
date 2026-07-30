@@ -30,9 +30,10 @@ final class Setup
             check_admin_referer('enterprise_setup');
             Installer::ensureSchema();
             Installer::seedDefaults();
+            Installer::syncAllObjectTables();
             \Enterprise\Db\DemoSeeder::run();
             update_option('enterprise_setup_done', 1);
-            echo '<div class="notice notice-success"><p>نصب کامل شد. تمام ماژول‌ها، حساب‌ها و داده‌های دمو ایجاد شدند.</p></div>';
+            echo '<div class="notice notice-success"><p>نصب کامل شد. تمام ماژول‌ها، حساب‌ها، Flat Tableها و داده‌های دمو ایجاد شدند.</p></div>';
         }
         echo '<div class="wrap"><h1>Enterprise Setup Wizard</h1>';
         echo '<p>این ویزارد جداول، حساب‌های پیش‌فرض، اشیاء سیستمی و داده‌های دمو را در یک مرحله نصب می‌کند.</p>';

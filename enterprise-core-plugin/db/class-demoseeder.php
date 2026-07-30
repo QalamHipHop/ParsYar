@@ -32,16 +32,17 @@ final class DemoSeeder
         if (!$account) {
             return;
         }
-        $names = [
+        $store  = \Enterprise\Modules\Objects\RecordStore::forObject((int) $account['id']);
+        $names  = [
             ['name' => 'شرکت پارس گستر', 'industry' => 'فناوری', 'website' => 'https://parsGostar.ir', 'phone' => '021-88776655', 'email' => 'info@parsgostar.ir', 'tax_id' => '12345678901'],
             ['name' => 'گروه صنعتی آریا',  'industry' => 'تولیدی',  'website' => 'https://aria.co.ir',  'phone' => '021-33445566', 'email' => 'sales@aria.co.ir',  'tax_id' => '98765432109'],
             ['name' => 'بازرگانی سپهر',     'industry' => 'بازرگانی','website' => 'https://sepehr.trade', 'phone' => '021-77889900', 'email' => 'hello@sepehr.trade', 'tax_id' => '11122233344'],
         ];
         foreach ($names as $n) {
-            if (self::recordExists($account['id'], $n['name'])) {
+            if (self::recordExists($store, $n['name'])) {
                 continue;
             }
-            ObjectEngine::createRecord((int) $account['id'], $n);
+            $store->create($n);
         }
     }
 
@@ -104,7 +105,7 @@ final class DemoSeeder
     {
         $opportunity = ObjectEngine::findObjectByApiName('opportunity');
         if ($opportunity) {
-            ObjectEngine::createRecord((int) $opportunity['id'], [
+            \Enterprise\Modules\Objects\RecordStore::forObject((int) $opportunity['id'])->create([
                 'name'   => 'فروش سالانه پارس گستر',
                 'amount' => 250000000,
                 'stage'  => 'negotiation',
@@ -112,7 +113,7 @@ final class DemoSeeder
         }
         $project = ObjectEngine::findObjectByApiName('project');
         if ($project) {
-            ObjectEngine::createRecord((int) $project['id'], [
+            \Enterprise\Modules\Objects\RecordStore::forObject((int) $project['id'])->create([
                 'name'     => 'پیاده‌سازی ERP',
                 'budget'   => 800000000,
                 'status'   => 'active',
@@ -121,11 +122,12 @@ final class DemoSeeder
         }
     }
 
-    private static function recordExists(int $objectId, string $name): bool
+    private static function recordExists(\Enterprise\Modules\Objects\RecordStore $store, string $name): bool
     {
-        $rows = ObjectEngine::listRecords($objectId, ['limit' => 1000, 'offset' => 0]);
+        $rows = $store->list(1000, 0, []);
         foreach ($rows as $r) {
-            if (($r['data']['name'] ?? '') === $name) {
+            $data = $r['data'] ?? [];
+            if (($data['name'] ?? '') === $name) {
                 return true;
             }
         }

@@ -212,6 +212,25 @@ final class Installer
         update_option('enterprise_seeded', 'yes');
     }
 
+    /**
+     * ساخت Flat Table برای همه اشیاء موجود (migration).
+     */
+    public static function syncAllObjectTables(): int
+    {
+        $count = 0;
+        $rows  = \Enterprise\Support\Db::getResults('objects', [], 'id ASC', 1000, 0);
+        foreach ($rows as $obj) {
+            $fields = \Enterprise\Modules\Objects\ObjectEngine::getFields((int) $obj['id']);
+            \Enterprise\Modules\Objects\SchemaBuilder::syncObjectTable(
+                (int) $obj['id'],
+                (string) $obj['api_name'],
+                $fields
+            );
+            $count++;
+        }
+        return $count;
+    }
+
     private static function ensureCapabilities(): void
     {
         $role = get_role('administrator');

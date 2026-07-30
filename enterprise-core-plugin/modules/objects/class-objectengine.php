@@ -6,12 +6,16 @@ namespace Enterprise\Modules\Objects;
 defined('ABSPATH') || exit;
 
 use Enterprise\Support\Db;
+use Enterprise\Modules\Audit\Logger;
 
 /**
  * Custom Object Engine — الهام گرفته از Salesforce.
  *
- * مدیران می‌توانند بدون کدنویسی، اشیاء جدید با فیلدها و روابط تعریف کنند.
- * هر شیء در جداول SQL اختصاصی ذخیره می‌شود (Flat Tables) برای کوئری سریع.
+ * هر شیء در دیتابیس:
+ *  - یک رکورد در `wp_ent_objects` (فراداده)
+ *  - یک جدول اختصاصی `wp_ent_data_{api_name}` (Flat Table) — ساخته شده توسط SchemaBuilder
+ *  - فیلدهایش در `wp_ent_object_fields`
+ *  - روابطش در `wp_ent_object_relations`
  */
 final class ObjectEngine
 {
@@ -22,9 +26,8 @@ final class ObjectEngine
     ];
 
     /**
-     * ایجاد یک شیء جدید به همراه فیلدهایش.
+     * ایجاد یک شیء جدید به همراه فیلدها و جدول اختصاصی.
      *
-     * @param array{api_name:string,label:string,label_plural:string,description?:string,fields?:array} $spec
      * @return int object_id
      */
     public static function createObject(array $spec): int
@@ -39,21 +42,22 @@ final class ObjectEngine
             'is_system'    => 0,
         ]);
 
+        $fields = [];
         foreach (($spec['fields'] ?? []) as $i => $field) {
-            self::addField($id, $field, $i);
+            $fields[] = self::addField($id, $field, $i);
         }
-        self::ensureRecordTable($id, $spec['api_name']);
+        SchemaBuilder::syncObjectTable($id, $spec['api_name'], $fields);
         return $id;
     }
 
-    public static function addField(int $objectId, array $field, int $sort = 0): int
+    public static function addField(int $objectId, array $field, int $sort = 0): array
     {
         if (!in_array($field['type'], self::SUPPORTED_TYPES, true)) {
-            throw new \InvalidArgumentException('Unsupported field type: ' . $field['type']);
+            throw new \InvalidArgumentException('Unsupported field type: ' . ($field['type'] ?? ''));
         }
         self::assertValidApiName($field['api_name']);
 
-        return Db::insert('object_fields', [
+        $id = Db::insert('object_fields', [
             'object_id'     => $objectId,
             'api_name'      => $field['api_name'],
             'label'         => $field['label'],
@@ -64,6 +68,18 @@ final class ObjectEngine
             'options'       => isset($field['options']) ? wp_json_encode($field['options']) : null,
             'sort_order'    => $sort,
         ]);
+        return [
+            'id'           => $id,
+            'object_id'    => $objectId,
+            'api_name'     => $field['api_name'],
+            'label'        => $field['label'],
+            'type'         => $field['type'],
+            'is_required'  => !empty($field['required']) ? 1 : 0,
+            'is_unique'    => !empty($field['unique']) ? 1 : 0,
+            'default_value'=> $field['default'] ?? null,
+            'options'      => $field['options'] ?? null,
+            'sort_order'   => $sort,
+        ];
     }
 
     public static function addRelation(int $parentId, int $childId, string $type, string $apiName, string $label, string $onDelete = 'restrict'): int
@@ -96,50 +112,39 @@ final class ObjectEngine
         }, $rows);
     }
 
-    /**
-     * ایجاد رکورد جدید برای یک شیء.
-     */
+    public static function getRelations(int $objectId): array
+    {
+        return Db::getResults('object_relations', [
+            'parent_object_id' => $objectId,
+        ], 'id ASC');
+    }
+
+    // ---------- Record facade (back-compat) ----------
+
     public static function createRecord(int $objectId, array $data, ?int $ownerId = null): int
     {
-        $object = Db::getRow('objects', ['id' => $objectId]);
-        if (!$object) {
-            throw new \RuntimeException('Object not found');
-        }
-        $fields   = self::getFields($objectId);
-        $cleaned  = self::validateAndCoerce($fields, $data);
-
-        $id = Db::insert('records', [
-            'object_id' => $objectId,
-            'data'      => wp_json_encode($cleaned, JSON_UNESCAPED_UNICODE),
-            'owner_id'  => $ownerId ?? get_current_user_id() ?: null,
-        ]);
-        \Enterprise\Modules\Audit\Logger::log('record', $id, 'create', $cleaned);
-        do_action('enterprise_event', 'record.created', [
-            'object'    => $object['api_name'],
-            'record_id' => $id,
-            'data'      => $cleaned,
-        ]);
-        return $id;
+        $store = RecordStore::forObject($objectId);
+        return $store->create($data, $ownerId);
     }
 
     public static function getRecord(int $id): ?array
     {
         $row = Db::getRow('records', ['id' => $id]);
-        if (!$row) {
-            return null;
+        if ($row) {
+            $r = $row;
+            $r['data'] = json_decode((string) $r['data'], true) ?: [];
+            return $r;
         }
-        $row['data'] = json_decode((string) $row['data'], true) ?: [];
-        return $row;
+        // تلاش در Flat Tables: نگاشت معکوس نداریم، پس null.
+        return null;
     }
 
     public static function listRecords(int $objectId, array $args = []): array
     {
-        $where = ['object_id' => $objectId];
-        $rows  = Db::getResults('records', $where, 'id DESC', $args['limit'] ?? 50, $args['offset'] ?? 0);
-        return array_map(static function (array $r): array {
-            $r['data'] = json_decode((string) $r['data'], true) ?: [];
-            return $r;
-        }, $rows);
+        $store  = RecordStore::forObject($objectId);
+        $limit  = max(1, min(500, (int) ($args['limit'] ?? 50)));
+        $offset = max(0, (int) ($args['offset'] ?? 0));
+        return $store->list($limit, $offset, (array) ($args['filters'] ?? []));
     }
 
     public static function updateRecord(int $id, array $data): bool
@@ -148,53 +153,36 @@ final class ObjectEngine
         if (!$row) {
             return false;
         }
-        $object  = Db::getRow('objects', ['id' => $row['object_id']]);
-        $fields  = self::getFields((int) $row['object_id']);
-        $cleaned = self::validateAndCoerce($fields, $data, (array) $row['data']);
-
-        Db::update('records', ['data' => wp_json_encode($cleaned, JSON_UNESCAPED_UNICODE)], ['id' => $id]);
-        \Enterprise\Modules\Audit\Logger::log('record', $id, 'update', [
-            'before' => $row['data'],
-            'after'  => $cleaned,
-        ]);
-        do_action('enterprise_event', 'record.updated', [
-            'object'    => $object['api_name'],
-            'record_id' => $id,
-            'data'      => $cleaned,
-        ]);
-        return true;
+        $obj = Db::getRow('objects', ['id' => $row['object_id']]);
+        if (!$obj) {
+            return false;
+        }
+        $store = RecordStore::forObject((int) $obj['id'], (string) $obj['api_name']);
+        return $store->update($id, $data);
     }
 
     public static function deleteRecord(int $id): bool
     {
         $row = self::getRecord($id);
-        if (!$row) {
-            return false;
+        if ($row) {
+            $r = Db::delete('records', ['id' => $id]);
+            Logger::log('record', $id, 'delete', $row['data']);
+            do_action('enterprise_event', 'record.deleted', ['record_id' => $id]);
+            return $r > 0;
         }
-        Db::delete('records', ['id' => $id]);
-        \Enterprise\Modules\Audit\Logger::log('record', $id, 'delete', $row['data']);
-        do_action('enterprise_event', 'record.deleted', ['record_id' => $id]);
-        return true;
+        return false;
     }
 
     /**
-     * اطمینان از ساخت جدول اختصاصی برای شیء (Flat Table Pattern).
-     * در این نسخه، رکوردها در جدول مرکزی `records` با ستون JSON نگهداری می‌شوند
-     * ولی برای اشیاء سیستمی جدول جدا ساخته می‌شود تا کوئری‌ها مقیاس‌پذیر شوند.
+     * اعتبارسنجی و تبدیل نوع داده‌ها — قابل استفاده مجدد توسط RecordStore.
      */
-    public static function ensureRecordTable(int $objectId, string $apiName): void
-    {
-        // Hook برای نسخه‌های آینده: ایجاد جدول اختصاصی برای اشیاء سنگین.
-        do_action('enterprise_ensure_object_table', $objectId, $apiName);
-    }
-
-    private static function validateAndCoerce(array $fields, array $data, array $previous = []): array
+    public static function validateDataForFields(array $fields, array $data, array $previous = []): array
     {
         $out = $previous;
         foreach ($fields as $f) {
             $key = $f['api_name'];
             if (!array_key_exists($key, $data)) {
-                if ($f['is_required'] && !array_key_exists($key, $out)) {
+                if (!empty($f['is_required']) && !array_key_exists($key, $out)) {
                     throw new \InvalidArgumentException('Field required: ' . $key);
                 }
                 continue;
@@ -205,14 +193,33 @@ final class ObjectEngine
                 'boolean'                       => $val ? 1 : 0,
                 'multiselect'                   => is_array($val) ? array_values(array_map('strval', $val)) : (array) $val,
                 'date', 'datetime'              => $val ? sanitize_text_field((string) $val) : null,
+                'lookup'                        => is_numeric($val) ? (int) $val : null,
                 default                         => is_scalar($val) ? sanitize_text_field((string) $val) : null,
             };
-            if ($val === null && $f['is_required']) {
+            if ($val === null && !empty($f['is_required'])) {
                 throw new \InvalidArgumentException('Field required: ' . $key);
             }
             $out[$key] = $val;
         }
         return $out;
+    }
+
+    /**
+     * حذف شیء + جدول اختصاصی.
+     */
+    public static function deleteObject(string $apiName): bool
+    {
+        $obj = self::findObjectByApiName($apiName);
+        if (!$obj || !empty($obj['is_system'])) {
+            return false;
+        }
+        SchemaBuilder::dropObjectTable($apiName);
+        Db::delete('object_fields', ['object_id' => $obj['id']]);
+        Db::delete('object_relations', [
+            'parent_object_id' => $obj['id'],
+        ]);
+        Db::delete('objects', ['id' => $obj['id']]);
+        return true;
     }
 
     private static function assertValidApiName(string $apiName): void

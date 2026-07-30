@@ -12,6 +12,13 @@ final class Bootstrap
 {
     public static function installSystemObjects(): void
     {
+        // اشیاء سیستمی از قبل نصب شده‌اند؟
+        if (get_option('enterprise_objects_seeded') === 'yes') {
+            // فقط Flat Tableها را sync می‌کنیم.
+            self::syncFlatTables();
+            return;
+        }
+
         $defaults = [
             [
                 'api_name'     => 'account',
@@ -96,6 +103,21 @@ final class Bootstrap
                 continue;
             }
             ObjectEngine::createObject($spec);
+        }
+
+        update_option('enterprise_objects_seeded', 'yes');
+    }
+
+    private static function syncFlatTables(): void
+    {
+        $rows = \Enterprise\Support\Db::getResults('objects', [], 'id ASC', 1000, 0);
+        foreach ($rows as $obj) {
+            $fields = ObjectEngine::getFields((int) $obj['id']);
+            SchemaBuilder::syncObjectTable(
+                (int) $obj['id'],
+                (string) $obj['api_name'],
+                $fields
+            );
         }
     }
 }
