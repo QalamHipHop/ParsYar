@@ -1,0 +1,21 @@
+/*
+Theme Name: پارس‌یار Enterprise Theme
+Theme URI: https://github.com/QalamHipHop/ParsYar
+Author: Qalam
+Description: Headless React/Tailwind SPA shell for the ParsYar CRM/ERP dashboard. Loads an asset bundle produced by Vite from the /spa/ directory.
+Version: 0.1.0
+Requires at least: 6.4
+Tested up to: 6.6
+Requires PHP: 8.1
+License: MIT
+Text Domain: pars-yar
+*/
+
+/* Minimal WP-required styles. The real UI is delivered by the React bundle. */
+body.pars-yar-spa {
+	margin: 0;
+	background: #f8fafc;
+	color: #0f172a;
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Tahoma, sans-serif;
+	direction: rtl;
+}
