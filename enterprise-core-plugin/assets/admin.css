@@ -1,0 +1,23 @@
+/* ParsYar admin shell — minimal, framework-agnostic.
+   The SPA lives in enterprise-theme and overrides these via its own bundle. */
+
+.pars-yar-wrap {
+	direction: rtl;
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Tahoma, sans-serif;
+}
+.pars-yar-h1 {
+	font-size: 22px;
+	font-weight: 600;
+	margin: 16px 0;
+}
+#pars-yar-app {
+	background: #fff;
+	border: 1px solid #e2e8f0;
+	border-radius: 8px;
+	padding: 16px;
+	min-height: 320px;
+}
+.pars-yar-loading {
+	color: #64748b;
+	font-size: 14px;
+}
