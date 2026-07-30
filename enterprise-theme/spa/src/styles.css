@@ -1,0 +1,29 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+	color-scheme: light;
+}
+
+html, body, #pars-yar-root {
+	height: 100%;
+}
+
+@layer components {
+	.py-card {
+		@apply bg-white border border-slate-200 rounded-lg shadow-sm p-4;
+	}
+	.py-btn-primary {
+		@apply inline-flex items-center justify-center px-4 py-2 rounded-md bg-brand-600 text-white text-sm font-medium hover:bg-brand-700 disabled:opacity-50;
+	}
+	.py-btn-ghost {
+		@apply inline-flex items-center justify-center px-3 py-2 rounded-md text-slate-700 hover:bg-slate-100 text-sm;
+	}
+	.py-input {
+		@apply w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500;
+	}
+	.py-label {
+		@apply block text-sm font-medium text-slate-700 mb-1;
+	}
+}
