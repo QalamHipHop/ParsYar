@@ -4,12 +4,12 @@
  */
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { StatusBar, useColorScheme, View, Text, Pressable, AppState, AppStateStatus } from 'react-native';
-import { Provider as ReduxProvider, useDispatch } from 'react-redux';
+import { Provider as ReduxProvider } from 'react-redux';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { I18nextProvider } from 'react-i18next';
-import i18n, { isRTL } from './lib/i18n';
-import { store, bootstrap, setOnline } from './store';
+import i18n from './lib/i18n';
+import { store, bootstrap, setOnline, useAppDispatch } from './store';
 import { lightTheme } from './theme';
 import RootNavigator from './navigation/RootNavigator';
 import { initPush, consumePendingDeepLink } from './lib/push';
@@ -18,7 +18,7 @@ import { isBiometricEnabled, authenticate } from './lib/biometric';
 import { Card } from './components/UI';
 
 function Bootstrapper({ children }: { children: React.ReactNode }) {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   useEffect(() => {
     dispatch(bootstrap());
   }, [dispatch]);
@@ -26,7 +26,7 @@ function Bootstrapper({ children }: { children: React.ReactNode }) {
 }
 
 function NetworkListener({ children }: { children: React.ReactNode }) {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   useEffect(() => {
     const sub = AppState.addEventListener('change', (s: AppStateStatus) => {
       dispatch(setOnline(s === 'active'));
@@ -126,8 +126,10 @@ function DeepLinkWiring() {
     });
     consumePendingDeepLink().then((u) => {
       if (u) {
-        const link = (require('./lib/deeplink').parseLink(u));
-        if (link) (globalThis as any).__parsyarLink = link;
+        // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+        const { parseLink } = require('./lib/deeplink') as typeof import('./lib/deeplink');
+        const link = parseLink(u);
+        if (link) (globalThis as { __parsyarLink?: typeof link }).__parsyarLink = link;
       }
     });
     return off;

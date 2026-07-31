@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { View, Text, ScrollView, StyleSheet, Switch, Pressable, Alert } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useAppDispatch, useAppSelector, setBiometric, setPush, setLocale } from '../store';
@@ -30,7 +30,7 @@ export default function SettingsScreen() {
           <Switch value={ui.biometricEnabled} onValueChange={onToggleBiometric} />
         </Row>
         <Row label={t('profile.notifications')}>
-          <Switch value={ui.pushEnabled} onValueChange={(v) => dispatch(setPush(v))} />
+          <Switch value={ui.pushEnabled} onValueChange={(v: boolean) => { dispatch(setPush(v)); }} />
         </Row>
         <Row label={t('profile.language')}>
           <View style={{ flexDirection: 'row', gap: 8 }}>

@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, FlatList, RefreshControl, Pressable, StyleSheet, Modal, TextInput, Alert } from 'react-native';
+import { View, Text, FlatList, RefreshControl, Pressable, StyleSheet, Modal, Alert } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { api, Ticket, formatDateJalali } from '../lib/api';
 import { Card, StatusBadge, Empty, Button, Input } from '../components/UI';

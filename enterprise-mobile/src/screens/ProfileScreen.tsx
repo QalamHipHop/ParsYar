@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, ScrollView, StyleSheet, Pressable } from 'react-native';
+import { Text, ScrollView, StyleSheet, Pressable } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useAppDispatch, useAppSelector, logout } from '../store';
 import { Card, Button } from '../components/UI';

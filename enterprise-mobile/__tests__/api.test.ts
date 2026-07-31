@@ -3,12 +3,15 @@
  */
 import axios from 'axios';
 
+// Storage stub typed as a generic Record for the test environment.
+declare const global: typeof globalThis & { __storage?: Record<string, string> };
+
 jest.mock('@react-native-async-storage/async-storage', () => ({
-  getItem: jest.fn(async (k) => global.__storage?.[k] ?? null),
-  setItem: jest.fn(async (k, v) => { global.__storage[k] = v; }),
-  multiSet: jest.fn(async (pairs) => { pairs.forEach(([k, v]: [string, string]) => { global.__storage[k] = v; }); }),
-  multiRemove: jest.fn(async (keys: string[]) => { keys.forEach((k) => delete global.__storage[k]); }),
-  removeItem: jest.fn(async (k) => { delete global.__storage[k]; }),
+  getItem: jest.fn(async (k: string) => global.__storage?.[k] ?? null),
+  setItem: jest.fn(async (k: string, v: string) => { global.__storage![k] = v; }),
+  multiSet: jest.fn(async (pairs: Array<[string, string]>) => { pairs.forEach(([k, v]) => { global.__storage![k] = v; }); }),
+  multiRemove: jest.fn(async (keys: string[]) => { keys.forEach((k) => delete global.__storage![k]); }),
+  removeItem: jest.fn(async (k: string) => { delete global.__storage![k]; }),
 }));
 
 jest.mock('axios');

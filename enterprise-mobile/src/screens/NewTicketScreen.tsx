@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, ScrollView, StyleSheet, Alert } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { useAppDispatch } from '../store';
-import { api, logEvent } from '../lib/api';
+import { api } from '../lib/api';
 import { Button, Input, Card } from '../components/UI';
 import { lightTheme as theme } from '../theme';
 

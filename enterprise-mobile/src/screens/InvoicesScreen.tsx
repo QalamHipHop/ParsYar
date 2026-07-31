@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, FlatList, RefreshControl, StyleSheet, Pressable } from 'react-native';
+import { View, Text, FlatList, RefreshControl } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { api, Invoice, formatCurrency, formatDateJalali } from '../lib/api';
 import { Card, StatusBadge, Empty } from '../components/UI';

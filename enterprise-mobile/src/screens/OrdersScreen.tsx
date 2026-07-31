@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { FlatList, RefreshControl } from 'react-native';
+import { FlatList, RefreshControl, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { api, Order, formatCurrency, formatDateJalali } from '../lib/api';
 import { Card, StatusBadge, Empty } from '../components/UI';
@@ -27,12 +27,12 @@ export default function OrdersScreen() {
       ListEmptyComponent={!loading ? <Empty title={t('dashboard.noData')} /> : null}
       renderItem={({ item }) => (
         <Card>
-          <Card.Row>
-            <Card.Title>{item.number}</Card.Title>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 }}>
+            <Text style={{ fontWeight: '700', fontSize: 15 }}>{item.number}</Text>
             <StatusBadge status={item.status} />
-          </Card.Row>
-          <Card.Sub>{formatDateJalali(item.order_date)}</Card.Sub>
-          <Card.Amount>{formatCurrency(item.total, item.currency)}</Card.Amount>
+          </View>
+          <Text style={{ fontSize: 12, color: theme.colors.ink2, marginBottom: 8 }}>{formatDateJalali(item.order_date)}</Text>
+          <Text style={{ fontSize: 16, fontWeight: '700', textAlign: 'left' }}>{formatCurrency(item.total, item.currency)}</Text>
         </Card>
       )}
     />
