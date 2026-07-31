@@ -116,6 +116,7 @@ final class Bootstrap
         add_action('init', [Router::class, 'register']);
         add_action('rest_api_init', [Api\RestRouter::class, 'register']);
         add_action('admin_menu', [Admin\Menu::class, 'register']);
+        add_action('admin_init', [Admin\MobilePage::class, 'registerSettings']);
         add_action('admin_init', [Admin\Setup::class, 'maybeRedirect']);
 
         // Setup Wizard
@@ -127,6 +128,7 @@ final class Bootstrap
         \Enterprise\Modules\Multitenant\Context::boot();
         \Enterprise\Modules\Multitenant\Repository::boot();
         \Enterprise\Modules\Portal\PortalModule::boot();
+        \Enterprise\Modules\Mobile\MobileModule::boot();
 
         add_action('enterprise_event', [Workflow\Dispatcher::class, 'handle'], 10, 2);
     }

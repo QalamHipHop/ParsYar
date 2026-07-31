@@ -1123,6 +1123,14 @@ final class RestRouter
         \Enterprise\Api\Multitenant\MultitenantController::registerRoutes();
 
         /* ------------------------------------------------------------------ *
+         *  Mobile App (v1.8.0) — React Native
+         *  /mobile/info  /mobile/devices/register
+         *  /mobile/devices/heartbeat  /mobile/devices/delete
+         *  /mobile/notifications/test
+         * ------------------------------------------------------------------ */
+        \Enterprise\Api\Mobile\MobileController::registerRoutes();
+
+        /* ------------------------------------------------------------------ *
          *  Audit
          * ------------------------------------------------------------------ */
         register_rest_route($ns, '/audit', [
