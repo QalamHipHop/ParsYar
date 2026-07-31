@@ -96,10 +96,22 @@ class ApiClient {
     this.instance.interceptors.response.use(undefined, this.handleError);
   }
 
+  /** Re-create the axios instance (called when baseUrl changes post-init). */
+  private rebuildInstance(): void {
+    this.instance = axios.create({
+      baseURL: this.baseUrl,
+      timeout: 15000,
+      headers: { 'Content-Type': 'application/json' },
+    });
+    this.instance.interceptors.request.use(this.attachToken);
+    this.instance.interceptors.response.use(undefined, this.handleError);
+  }
+
   async setBaseUrl(url: string): Promise<void> {
     this.baseUrl = url.replace(/\/+$/, '');
     await AsyncStorage.setItem(STORAGE_BASE_URL, this.baseUrl);
-    this.instance.defaults.baseURL = this.baseUrl;
+    // Rebuild so interceptors stay attached on the new instance
+    this.rebuildInstance();
   }
 
   getBaseUrl(): string { return this.baseUrl; }
@@ -214,6 +226,17 @@ class ApiClient {
 
   async logEvent(type: string, payload: Record<string, unknown> = {}): Promise<void> {
     try { await this.instance.post('/portal-event', { type, payload }); } catch { /* ignore */ }
+  }
+
+  // -------- push --------
+
+  async subscribePush(payload: { endpoint: string; platform: 'ios' | 'android'; keys: { p256dh: string; auth: string } }): Promise<{ id: number }> {
+    const { data } = await this.instance.post('/push/subscribe', payload);
+    return data.data;
+  }
+
+  async unsubscribePush(endpoint: string): Promise<void> {
+    try { await this.instance.post('/push/unsubscribe', { endpoint }); } catch { /* ignore */ }
   }
 
   // -------- interceptors --------

@@ -1,0 +1,71 @@
+name: Mobile CI
+
+on:
+  push:
+    branches: [main, develop, "feature/**", "fix/**"]
+    paths:
+      - "enterprise-mobile/**"
+      - ".github/workflows/mobile-ci.yml"
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - "enterprise-mobile/**"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  typecheck:
+    name: TypeScript Typecheck
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: enterprise-mobile
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: enterprise-mobile/package-lock.json
+      - run: npm ci || npm install
+      - run: npx tsc --noEmit
+
+  test:
+    name: Jest + Coverage
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: enterprise-mobile
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: enterprise-mobile/package-lock.json
+      - run: npm ci || npm install
+      - run: npm run test:ci
+      - name: Upload coverage
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: mobile-coverage
+          path: enterprise-mobile/coverage/
+
+  lint:
+    name: ESLint
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: enterprise-mobile
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: enterprise-mobile/package-lock.json
+      - run: npm ci || npm install
+      - run: npm run lint --if-present
