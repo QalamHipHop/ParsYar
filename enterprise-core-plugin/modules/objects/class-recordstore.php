@@ -7,6 +7,8 @@ defined('ABSPATH') || exit;
 
 use Enterprise\Support\Db;
 use Enterprise\Modules\Audit\Logger;
+use Enterprise\Modules\Objects\FieldTypes;
+use Enterprise\Validator;
 
 /**
  * RecordStore — لایه دسترسی به داده‌های رکورد.
@@ -89,6 +91,7 @@ final class RecordStore
     public function create(array $data, ?int $ownerId = null): int
     {
         $cleaned = ObjectEngine::validateDataForFields($this->fields, $data);
+        $cleaned = $this->applyIranianValidators($cleaned);
         $ownerId = $ownerId ?? (get_current_user_id() ?: null);
 
         if ($this->hasFlatTable()) {
@@ -112,6 +115,7 @@ final class RecordStore
             return false;
         }
         $cleaned = ObjectEngine::validateDataForFields($this->fields, $data, $this->extractData($existing));
+        $cleaned = $this->applyIranianValidators($cleaned);
         if ($this->hasFlatTable()) {
             return $this->updateFlat($id, $cleaned);
         }
@@ -301,5 +305,51 @@ final class RecordStore
             $out[$k] = $v;
         }
         return $out;
+    }
+
+    /**
+     * عبور از اعتبارسنج‌های ایرانی برای فیلدهای خاص.
+     * اعداد فارسی → انگلیسی، موبایل نرمال‌سازی، شیبا uppercase، کد ملی و کارت فقط رقم.
+     */
+    private function applyIranianValidators(array $data): array
+    {
+        foreach ($this->fields as $f) {
+            $apiName = (string) ($f['api_name'] ?? '');
+            if ($apiName === '' || !array_key_exists($apiName, $data) || $data[$apiName] === null) {
+                continue;
+            }
+            $type = (string) ($f['type'] ?? '');
+            $value = $data[$apiName];
+
+            // تبدیل اعداد فارسی به انگلیسی برای همهٔ فیلدهای عددی/رشته‌ای
+            if (in_array($type, [
+                FieldTypes::INT, FieldTypes::DECIMAL, FieldTypes::MOBILE,
+                FieldTypes::PHONE, FieldTypes::SHEBA, FieldTypes::NID,
+                FieldTypes::CARD, FieldTypes::JALALI, FieldTypes::TEXT,
+                FieldTypes::TEXTAREA, FieldTypes::EMAIL, FieldTypes::URL,
+            ], true) && is_string($value)) {
+                $value = Validator::persianToEnglish($value);
+                $data[$apiName] = $value;
+            }
+
+            // اعتبارسنجی موبایل (اگر ناموفق، مقدار خام بماند، خطا در validate گرفته می‌شود)
+            if ($type === FieldTypes::MOBILE && is_string($value)) {
+                $res = Validator::mobile($value);
+                if ($res['valid']) {
+                    $data[$apiName] = $res['normalized'];
+                }
+            }
+
+            // شیبا: حذف فاصله و uppercase
+            if ($type === FieldTypes::SHEBA && is_string($value)) {
+                $data[$apiName] = strtoupper(preg_replace('/\s+/', '', $value));
+            }
+
+            // کد ملی / کارت: فقط رقم
+            if (in_array($type, [FieldTypes::NID, FieldTypes::CARD], true) && is_string($value)) {
+                $data[$apiName] = preg_replace('/[^0-9]/', '', $value);
+            }
+        }
+        return $data;
     }
 }
