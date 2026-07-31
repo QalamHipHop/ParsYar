@@ -421,9 +421,9 @@ final class RestRouter
             'permission_callback' => [AuthController::class, 'capAccounting'],
         ]);
 
-        /* ------------------------------------------------------------------ *
-         *  ERP
-         * ------------------------------------------------------------------ */
+        /* ================================================================== *
+         *  ERP — Products
+         * ================================================================== */
         register_rest_route($ns, '/erp/products', [
             [
                 'methods'             => 'GET',
@@ -436,6 +436,154 @@ final class RestRouter
                 'permission_callback' => [AuthController::class, 'capRecords'],
             ],
         ]);
+        register_rest_route($ns, '/erp/products/low-stock', [
+            'methods'             => 'GET',
+            'callback'            => [ErpController::class, 'productsLowStock'],
+            'permission_callback' => [AuthController::class, 'capRecords'],
+        ]);
+        register_rest_route($ns, '/erp/products/summary', [
+            'methods'             => 'GET',
+            'callback'            => [ErpController::class, 'productsSummary'],
+            'permission_callback' => [AuthController::class, 'capRecords'],
+        ]);
+        register_rest_route($ns, '/erp/products/(?P<id>\d+)', [
+            [
+                'methods'             => 'GET',
+                'callback'            => [ErpController::class, 'productsShow'],
+                'permission_callback' => [AuthController::class, 'capRecords'],
+            ],
+            [
+                'methods'             => 'PUT,PATCH',
+                'callback'            => [ErpController::class, 'productsUpdate'],
+                'permission_callback' => [AuthController::class, 'capRecords'],
+            ],
+            [
+                'methods'             => 'DELETE',
+                'callback'            => [ErpController::class, 'productsDestroy'],
+                'permission_callback' => [AuthController::class, 'capRecords'],
+            ],
+        ]);
+        register_rest_route($ns, '/erp/products/(?P<id>\d+)/stock', [
+            'methods'             => 'POST',
+            'callback'            => [ErpController::class, 'productsStockAdjust'],
+            'permission_callback' => [AuthController::class, 'capRecords'],
+        ]);
+        register_rest_route($ns, '/erp/products/(?P<id>\d+)/stock-card', [
+            'methods'             => 'GET',
+            'callback'            => [ErpController::class, 'productsStockCard'],
+            'permission_callback' => [AuthController::class, 'capRecords'],
+        ]);
+        register_rest_route($ns, '/erp/products/(?P<id>\d+)/wac', [
+            'methods'             => 'GET',
+            'callback'            => [ErpController::class, 'productsWac'],
+            'permission_callback' => [AuthController::class, 'capRecords'],
+        ]);
+
+        /* ================================================================== *
+         *  ERP — Categories
+         * ================================================================== */
+        register_rest_route($ns, '/erp/categories', [
+            [
+                'methods'             => 'GET',
+                'callback'            => [ErpController::class, 'categoriesIndex'],
+                'permission_callback' => [AuthController::class, 'capRecords'],
+            ],
+            [
+                'methods'             => 'POST',
+                'callback'            => [ErpController::class, 'categoriesStore'],
+                'permission_callback' => [AuthController::class, 'capRecords'],
+            ],
+        ]);
+        register_rest_route($ns, '/erp/categories/(?P<id>\d+)', [
+            [
+                'methods'             => 'GET',
+                'callback'            => [ErpController::class, 'categoriesShow'],
+                'permission_callback' => [AuthController::class, 'capRecords'],
+            ],
+            [
+                'methods'             => 'PUT,PATCH',
+                'callback'            => [ErpController::class, 'categoriesUpdate'],
+                'permission_callback' => [AuthController::class, 'capRecords'],
+            ],
+            [
+                'methods'             => 'DELETE',
+                'callback'            => [ErpController::class, 'categoriesDestroy'],
+                'permission_callback' => [AuthController::class, 'capRecords'],
+            ],
+        ]);
+
+        /* ================================================================== *
+         *  ERP — Warehouses
+         * ================================================================== */
+        register_rest_route($ns, '/erp/warehouses', [
+            [
+                'methods'             => 'GET',
+                'callback'            => [ErpController::class, 'warehousesIndex'],
+                'permission_callback' => [AuthController::class, 'capRecords'],
+            ],
+            [
+                'methods'             => 'POST',
+                'callback'            => [ErpController::class, 'warehousesStore'],
+                'permission_callback' => [AuthController::class, 'capAdmin'],
+            ],
+        ]);
+        register_rest_route($ns, '/erp/warehouses/default', [
+            'methods'             => 'GET',
+            'callback'            => [ErpController::class, 'warehousesDefault'],
+            'permission_callback' => [AuthController::class, 'capRecords'],
+        ]);
+        register_rest_route($ns, '/erp/warehouses/summary', [
+            'methods'             => 'GET',
+            'callback'            => [ErpController::class, 'warehousesSummary'],
+            'permission_callback' => [AuthController::class, 'capRecords'],
+        ]);
+        register_rest_route($ns, '/erp/warehouses/(?P<id>\d+)', [
+            [
+                'methods'             => 'GET',
+                'callback'            => [ErpController::class, 'warehousesShow'],
+                'permission_callback' => [AuthController::class, 'capRecords'],
+            ],
+            [
+                'methods'             => 'PUT,PATCH',
+                'callback'            => [ErpController::class, 'warehousesUpdate'],
+                'permission_callback' => [AuthController::class, 'capAdmin'],
+            ],
+            [
+                'methods'             => 'DELETE',
+                'callback'            => [ErpController::class, 'warehousesDestroy'],
+                'permission_callback' => [AuthController::class, 'capAdmin'],
+            ],
+        ]);
+        register_rest_route($ns, '/erp/warehouses/(?P<id>\d+)/set-default', [
+            'methods'             => 'POST',
+            'callback'            => [ErpController::class, 'warehousesSetDefault'],
+            'permission_callback' => [AuthController::class, 'capAdmin'],
+        ]);
+
+        /* ================================================================== *
+         *  ERP — Stock Movements
+         * ================================================================== */
+        register_rest_route($ns, '/erp/stock-movements', [
+            [
+                'methods'             => 'GET',
+                'callback'            => [ErpController::class, 'stockMovementsIndex'],
+                'permission_callback' => [AuthController::class, 'capRecords'],
+            ],
+            [
+                'methods'             => 'POST',
+                'callback'            => [ErpController::class, 'stockMovementsStore'],
+                'permission_callback' => [AuthController::class, 'capRecords'],
+            ],
+        ]);
+        register_rest_route($ns, '/erp/stock-movements/transfer', [
+            'methods'             => 'POST',
+            'callback'            => [ErpController::class, 'stockMovementsTransfer'],
+            'permission_callback' => [AuthController::class, 'capRecords'],
+        ]);
+
+        /* ================================================================== *
+         *  ERP — Invoices
+         * ================================================================== */
         register_rest_route($ns, '/erp/invoices', [
             [
                 'methods'             => 'GET',
@@ -447,6 +595,163 @@ final class RestRouter
                 'callback'            => [ErpController::class, 'invoicesStore'],
                 'permission_callback' => [AuthController::class, 'capRecords'],
             ],
+        ]);
+        register_rest_route($ns, '/erp/invoices/overdue', [
+            'methods'             => 'GET',
+            'callback'            => [ErpController::class, 'invoicesOverdue'],
+            'permission_callback' => [AuthController::class, 'capRecords'],
+        ]);
+        register_rest_route($ns, '/erp/invoices/summary', [
+            'methods'             => 'GET',
+            'callback'            => [ErpController::class, 'invoicesSummary'],
+            'permission_callback' => [AuthController::class, 'capRecords'],
+        ]);
+        register_rest_route($ns, '/erp/invoices/pending-moodian', [
+            'methods'             => 'GET',
+            'callback'            => [ErpController::class, 'invoicesPendingMoodian'],
+            'permission_callback' => [AuthController::class, 'capAccounting'],
+        ]);
+        register_rest_route($ns, '/erp/invoices/(?P<id>\d+)', [
+            [
+                'methods'             => 'GET',
+                'callback'            => [ErpController::class, 'invoicesShow'],
+                'permission_callback' => [AuthController::class, 'capRecords'],
+            ],
+            [
+                'methods'             => 'PUT,PATCH',
+                'callback'            => [ErpController::class, 'invoicesUpdate'],
+                'permission_callback' => [AuthController::class, 'capRecords'],
+            ],
+            [
+                'methods'             => 'DELETE',
+                'callback'            => [ErpController::class, 'invoicesDestroy'],
+                'permission_callback' => [AuthController::class, 'capRecords'],
+            ],
+        ]);
+        register_rest_route($ns, '/erp/invoices/(?P<id>\d+)/pay', [
+            'methods'             => 'POST',
+            'callback'            => [ErpController::class, 'invoicesPay'],
+            'permission_callback' => [AuthController::class, 'capRecords'],
+        ]);
+        register_rest_route($ns, '/erp/invoices/(?P<id>\d+)/cancel', [
+            'methods'             => 'POST',
+            'callback'            => [ErpController::class, 'invoicesCancel'],
+            'permission_callback' => [AuthController::class, 'capRecords'],
+        ]);
+        register_rest_route($ns, '/erp/invoices/(?P<id>\d+)/moodian', [
+            'methods'             => 'POST',
+            'callback'            => [ErpController::class, 'invoicesSetMoodian'],
+            'permission_callback' => [AuthController::class, 'capAccounting'],
+        ]);
+
+        /* ================================================================== *
+         *  ERP — Orders
+         * ================================================================== */
+        register_rest_route($ns, '/erp/orders', [
+            [
+                'methods'             => 'GET',
+                'callback'            => [ErpController::class, 'ordersIndex'],
+                'permission_callback' => [AuthController::class, 'capRecords'],
+            ],
+            [
+                'methods'             => 'POST',
+                'callback'            => [ErpController::class, 'ordersStore'],
+                'permission_callback' => [AuthController::class, 'capRecords'],
+            ],
+        ]);
+        register_rest_route($ns, '/erp/orders/(?P<id>\d+)', [
+            [
+                'methods'             => 'GET',
+                'callback'            => [ErpController::class, 'ordersShow'],
+                'permission_callback' => [AuthController::class, 'capRecords'],
+            ],
+            [
+                'methods'             => 'PUT,PATCH',
+                'callback'            => [ErpController::class, 'ordersUpdate'],
+                'permission_callback' => [AuthController::class, 'capRecords'],
+            ],
+        ]);
+        register_rest_route($ns, '/erp/orders/(?P<id>\d+)/confirm', [
+            'methods'             => 'POST',
+            'callback'            => [ErpController::class, 'ordersConfirm'],
+            'permission_callback' => [AuthController::class, 'capRecords'],
+        ]);
+        register_rest_route($ns, '/erp/orders/(?P<id>\d+)/fulfill', [
+            'methods'             => 'POST',
+            'callback'            => [ErpController::class, 'ordersFulfill'],
+            'permission_callback' => [AuthController::class, 'capRecords'],
+        ]);
+        register_rest_route($ns, '/erp/orders/(?P<id>\d+)/cancel', [
+            'methods'             => 'POST',
+            'callback'            => [ErpController::class, 'ordersCancel'],
+            'permission_callback' => [AuthController::class, 'capRecords'],
+        ]);
+        register_rest_route($ns, '/erp/orders/(?P<id>\d+)/to-invoice', [
+            'methods'             => 'POST',
+            'callback'            => [ErpController::class, 'ordersToInvoice'],
+            'permission_callback' => [AuthController::class, 'capRecords'],
+        ]);
+        register_rest_route($ns, '/erp/orders/(?P<id>\d+)/pay', [
+            'methods'             => 'POST',
+            'callback'            => [ErpController::class, 'ordersPay'],
+            'permission_callback' => [AuthController::class, 'capRecords'],
+        ]);
+
+        /* ================================================================== *
+         *  ERP — Payments
+         * ================================================================== */
+        register_rest_route($ns, '/erp/payments', [
+            [
+                'methods'             => 'GET',
+                'callback'            => [ErpController::class, 'paymentsIndex'],
+                'permission_callback' => [AuthController::class, 'capRecords'],
+            ],
+            [
+                'methods'             => 'POST',
+                'callback'            => [ErpController::class, 'paymentsStore'],
+                'permission_callback' => [AuthController::class, 'capRecords'],
+            ],
+        ]);
+        register_rest_route($ns, '/erp/payments/(?P<id>\d+)', [
+            'methods'             => 'GET',
+            'callback'            => [ErpController::class, 'paymentsShow'],
+            'permission_callback' => [AuthController::class, 'capRecords'],
+        ]);
+        register_rest_route($ns, '/erp/payments/(?P<id>\d+)/refund', [
+            'methods'             => 'POST',
+            'callback'            => [ErpController::class, 'paymentsRefund'],
+            'permission_callback' => [AuthController::class, 'capRecords'],
+        ]);
+
+        /* ================================================================== *
+         *  ERP — Refunds
+         * ================================================================== */
+        register_rest_route($ns, '/erp/refunds', [
+            [
+                'methods'             => 'GET',
+                'callback'            => [ErpController::class, 'refundsIndex'],
+                'permission_callback' => [AuthController::class, 'capRecords'],
+            ],
+            [
+                'methods'             => 'POST',
+                'callback'            => [ErpController::class, 'refundsStore'],
+                'permission_callback' => [AuthController::class, 'capRecords'],
+            ],
+        ]);
+        register_rest_route($ns, '/erp/refunds/(?P<id>\d+)', [
+            'methods'             => 'GET',
+            'callback'            => [ErpController::class, 'refundsShow'],
+            'permission_callback' => [AuthController::class, 'capRecords'],
+        ]);
+        register_rest_route($ns, '/erp/refunds/(?P<id>\d+)/approve', [
+            'methods'             => 'POST',
+            'callback'            => [ErpController::class, 'refundsApprove'],
+            'permission_callback' => [AuthController::class, 'capAdmin'],
+        ]);
+        register_rest_route($ns, '/erp/refunds/(?P<id>\d+)/process', [
+            'methods'             => 'POST',
+            'callback'            => [ErpController::class, 'refundsProcess'],
+            'permission_callback' => [AuthController::class, 'capAdmin'],
         ]);
 
         /* ------------------------------------------------------------------ *

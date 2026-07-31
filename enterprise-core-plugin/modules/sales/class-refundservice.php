@@ -31,6 +31,67 @@ final class RefundService
         return Db::table('refunds');
     }
 
+    /**
+     * جستجوی بازپرداخت / اعتبارنامه.
+     *
+     * @return array<int,array<string,mixed>>
+     */
+    public static function search(array $filters = [], int $limit = 50, int $offset = 0, string $order = 'id DESC'): array
+    {
+        global $wpdb;
+        $table = self::tableName();
+
+        $where  = ['1=1'];
+        $params = [];
+
+        if (!empty($filters['q'])) {
+            $q = '%' . $wpdb->esc_like((string) $filters['q']) . '%';
+            $where[]  = '(number LIKE %s OR reason LIKE %s)';
+            $params[] = $q; $params[] = $q;
+        }
+        if (!empty($filters['status'])) {
+            $where[]  = 'status = %s';
+            $params[] = (string) $filters['status'];
+        }
+        if (!empty($filters['type'])) {
+            $where[]  = 'type = %s';
+            $params[] = (string) $filters['type'];
+        }
+        if (!empty($filters['invoice_id'])) {
+            $where[]  = 'invoice_id = %d';
+            $params[] = (int) $filters['invoice_id'];
+        }
+        if (!empty($filters['order_id'])) {
+            $where[]  = 'order_id = %d';
+            $params[] = (int) $filters['order_id'];
+        }
+        if (!empty($filters['customer_id'])) {
+            $where[]  = 'customer_id = %d';
+            $params[] = (int) $filters['customer_id'];
+        }
+
+        $order = sanitize_sql_orderby($order);
+        $sql   = "SELECT * FROM {$table} WHERE " . implode(' AND ', $where)
+               . " ORDER BY {$order} LIMIT %d OFFSET %d";
+        $params[] = max(1, min(500, $limit));
+        $params[] = max(0, $offset);
+        $rows = $wpdb->get_results($wpdb->prepare($sql, $params), ARRAY_A);
+        return array_map(static function ($r) {
+            if (!empty($r['items']) && is_string($r['items'])) {
+                $r['items'] = json_decode($r['items'], true) ?? [];
+            }
+            if (!empty($r['meta']) && is_string($r['meta'])) {
+                $r['meta']  = json_decode($r['meta'],  true) ?? [];
+            }
+            return $r;
+        }, $rows ?: []);
+    }
+
+    public static function count(array $filters = []): int
+    {
+        return count(self::search($filters, 100000, 0));
+    }
+
     public static function types(): array
     {
         return [

@@ -71,6 +71,76 @@ final class PaymentService
     }
 
     /**
+     * جستجوی پرداخت با فیلتر + صفحه‌بندی.
+     *
+     * @return array<int,array<string,mixed>>
+     */
+    public static function search(array $filters = [], int $limit = 50, int $offset = 0, string $order = 'id DESC'): array
+    {
+        global $wpdb;
+        $table = self::tableName();
+
+        $where  = ['1=1'];
+        $params = [];
+
+        if (!empty($filters['q'])) {
+            $q = '%' . $wpdb->esc_like((string) $filters['q']) . '%';
+            $where[]  = '(number LIKE %s OR gateway_ref LIKE %s OR tracking_no LIKE %s)';
+            $params[] = $q; $params[] = $q; $params[] = $q;
+        }
+        if (!empty($filters['method'])) {
+            $where[]  = 'method = %s';
+            $params[] = (string) $filters['method'];
+        }
+        if (!empty($filters['status'])) {
+            $where[]  = 'status = %s';
+            $params[] = (string) $filters['status'];
+        }
+        if (!empty($filters['invoice_id'])) {
+            $where[]  = 'invoice_id = %d';
+            $params[] = (int) $filters['invoice_id'];
+        }
+        if (!empty($filters['order_id'])) {
+            $where[]  = 'order_id = %d';
+            $params[] = (int) $filters['order_id'];
+        }
+        if (!empty($filters['customer_id'])) {
+            $where[]  = 'customer_id = %d';
+            $params[] = (int) $filters['customer_id'];
+        }
+        if (!empty($filters['currency'])) {
+            $where[]  = 'currency = %s';
+            $params[] = (string) $filters['currency'];
+        }
+        if (!empty($filters['from_date'])) {
+            $where[]  = 'created_at >= %s';
+            $params[] = (string) $filters['from_date'];
+        }
+        if (!empty($filters['to_date'])) {
+            $where[]  = 'created_at <= %s';
+            $params[] = (string) $filters['to_date'];
+        }
+
+        $order = sanitize_sql_orderby($order);
+        $sql   = "SELECT * FROM {$table} WHERE " . implode(' AND ', $where)
+               . " ORDER BY {$order} LIMIT %d OFFSET %d";
+        $params[] = max(1, min(500, $limit));
+        $params[] = max(0, $offset);
+        $rows = $wpdb->get_results($wpdb->prepare($sql, $params), ARRAY_A);
+        return array_map(static function ($r) {
+            if (!empty($r['meta']) && is_string($r['meta'])) {
+                $r['meta'] = json_decode($r['meta'], true) ?? [];
+            }
+            return $r;
+        }, $rows ?: []);
+    }
+
+    public static function count(array $filters = []): int
+    {
+        return count(self::search($filters, 100000, 0));
+    }
+
+    /**
      * ثبت پرداخت.
      *
      * @return int
