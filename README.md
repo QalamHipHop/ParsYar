@@ -7,6 +7,7 @@
 [![MySQL](https://img.shields.io/badge/MySQL-8.0%2B%20%7C%20MariaDB-10.6%2B-4479a1)](https://www.mysql.com)
 [![License](https://img.shields.io/badge/license-GPL--2.0--or--later-blue)](LICENSE)
 [![Version](https://img.shields.io/badge/version-1.3.0-black)]()
+[![CI](https://github.com/QalamHipHop/ParsYar/actions/workflows/ci.yml/badge.svg)](https://github.com/QalamHipHop/ParsYar/actions/workflows/ci.yml)
 [![Architecture](https://img.shields.io/badge/architecture-layered-black)]()
 [![No third-party deps](https://img.shields.io/badge/dependencies-zero-black)]()
 
