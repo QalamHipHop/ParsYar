@@ -1,0 +1,44 @@
+parameters:
+    level: 6
+    paths:
+        - includes
+        - modules
+        - api
+        - admin
+        - db
+    excludePaths:
+        - vendor
+        - tests
+        - build
+    treatPhpDocTypesAsCertain: false
+    reportUnmatchedIgnoredErrors: false
+    checkMissingIterableValueType: false
+    checkMissingCallableSignature: false
+    checkMissingTypeHint: false
+includes:
+    - vendor/phpstan/phpstan/conf/bleedingEdge.neon
+rules:
+    - PHPStan\Rules\Classes\RequireConstructorPropertyPromotion
+    - PHPStan\Rules\Disallowed\DisallowedCall
+
+services:
+    - class: PHPStan\Rules\Disallowed\DisallowedCallExtension
+      tags:
+          - phpstan.rules.rule
+      arguments:
+          disallowedMethodCalls:
+              - method: '\wpdb::query()'
+                message: 'Use $wpdb->prepare() with placeholders instead.'
+              - method: '\wpdb::get_results()'
+                message: 'Use $wpdb->prepare() with placeholders; or DocumentDb::query().'
+          disallowedFunctionCalls:
+              - function: 'var_dump'
+                message: 'Remove debug var_dump before commit.'
+              - function: 'dd'
+                message: 'Remove debug dd() before commit.'
+              - function: 'dump'
+                message: 'Remove debug dump() before commit.'
+              - function: 'print_r'
+                message: 'Use error_log() instead of print_r().'
+              - function: 'error_log'
+                message: 'error_log is fine in development but make sure it does not leak PII in production.'
