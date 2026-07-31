@@ -11,7 +11,7 @@ declare(strict_types=1);
 defined('ABSPATH') || exit;
 
 if (!defined('PARSYAR_THEME_VERSION')) {
-    define('PARSYAR_THEME_VERSION', '1.0.0');
+    define('PARSYAR_THEME_VERSION', '2.0.0');
 }
 if (!defined('PARSYAR_THEME_DIR')) {
     define('PARSYAR_THEME_DIR', get_stylesheet_directory());

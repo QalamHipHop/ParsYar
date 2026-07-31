@@ -1,5 +1,71 @@
 # Changelog
 
+## [2.0.0] - 2026-07-31 (Multi-tenant SaaS — Holding mode)
+
+### افزوده (Added)
+
+- **ماژول Multitenant (هستهٔ چند-مستأجری)** — `Enterprise\Modules\Multitenant\*`:
+  - `Tenant` — مدل کامل با `uuid`, `slug`, `plan` (starter/pro/enterprise), `settings` (JSON), `branding` (JSON)
+  - `Branch` — شعب هر tenant با `parent_id` (سلسله‌مراتب)، `is_default`, `is_active`، soft delete
+  - `Membership` — ارتباط user↔tenant↔branch با `role` (owner/admin/manager/member/viewer) و `UNIQUE (user_id, tenant_id, branch_id)`
+  - `Context` — حل خودکار tenant/branch فعال از روی header (`X-ParsYar-Company`, `X-ParsYar-Branch`) → query var → user_meta → tenant پیش‌فرض؛ رجیستر روی `rest_pre_dispatch` تا قبل از controller اجرا شود
+  - `Repository` — cache group مستقل برای هر tenant + prune روزانه tenantهای آرشیو‌شدهٔ بالای ۹۰ روز
+- **Multitenant REST API (۱۳ endpoint)** در namespace `enterprise/v1/tenants/*`:
+  - `GET/POST /tenants`، `GET/PUT/DELETE /tenants/{id}`
+  - `GET /tenants/current` (tenant فعال از Context)
+  - `GET /tenants/me` (memberships کاربر جاری)
+  - `POST /tenants/switch` (تغییر tenant/branch + ذخیره در user_meta)
+  - `GET/POST /tenants/{id}/branches`، `GET/POST /tenants/{id}/members`
+- **Installer**: `migrateMultitenantTables()` (سه جدول با `UNIQUE KEY` و `KEY` مناسب برای InnoDB + utf8mb4) + `seedDefaultTenant()` برای نصب‌های تک‌مستأجری
+- **Bootstrap**: `Multitenant\Context::boot()` و `Multitenant\Repository::boot()` به صورت خودکار در `registerHooks()` رجیستر می‌شوند
+- **Composer PSR-4**: `Enterprise\Modules\Multitenant\` و `Enterprise\Api\Multitenant\` اضافه شد
+
+### تغییر (Changed)
+
+- نسخهٔ `Bootstrap::VERSION` و `Installer::VERSION` از `1.8.0` به `2.0.0` ارتقا یافت
+- نسخهٔ theme و `PARSYAR_THEME_VERSION` به `2.0.0` sync شد
+- `composer.json`: maintainer به `QalamHiphop <qalam@parsyar.dev>` تغییر یافت
+- README کاملاً بازنویسی شد (تمام ماژول‌ها، ۲۲ نوع فیلد، سه سطح سرویس، Portal، Mobile، Multitenant، همهٔ REST routes)
+
+## [1.8.0] - 2026-07-31 (Mobile backend — FCM/APNs)
+
+### افزوده (Added)
+
+- **ماژول Mobile (بک‌اند React Native)** — `Enterprise\Modules\Mobile\*`:
+  - `Device` — مدل کامل با `platform` (ios/android)، `app_version`، `os_version`، `device_model`، `locale`، `push_enabled`، `is_active`، `last_seen_at`
+  - `Device::register()` — upsert بر اساس `token` (idempotent برای re-install)
+  - `MobileModule::sendToDevice()` — ارسال push از طریق FCM (Android) و APNs (iOS) با کلیدهای پیکربندی‌شده در admin
+  - `MobileModule::pruneStaleDevices()` — اجرای روزانه روی `enterprise_daily` برای حذف deviceهای idle بالای ۱۸۰ روز
+  - `Mobile REST Controller` — ۵ endpoint (`/mobile/info`, `/mobile/devices/register`, `/mobile/devices/heartbeat`, `/mobile/devices/{id}`, `/mobile/notifications/test`)
+- **Mobile App (React Native 0.75)** — `enterprise-mobile/`:
+  - ۹ صفحه + ۴ صفحه detail (Login, Verify, Dashboard, Invoices + Detail, Orders + Detail, Payments + Detail, Tickets + New + Detail, Profile, Settings)
+  - **Magic Link** با endpointهای بک‌اند پورتال
+  - **JWT rotation** خودکار روی ۴۰۱ با Axios interceptor و refresh-token واحد
+  - **AsyncStorage** برای token، baseUrl، profile
+  - **Biometric** (TouchID/FaceID/Fingerprint) با `react-native-biometrics` (opt-in)
+  - **Push** با `react-native-push-notification` (FCM + APNs)
+  - **Deep linking**: `parsyar://verify?token=…` + Universal Links
+  - iOS Info.plist با ATS، FaceID usage description، deep link registration
+  - AndroidManifest.xml با INTERNET، USE_BIOMETRIC، POST_NOTIFICATIONS، deep link filters
+  - Network security config (cleartext فقط برای localhost dev)
+  - Podfile با Fabric/Hermes، vector icons، push notification pod
+  - build.gradle با ProGuard، Hermes، minSdk 24
+  - GitHub Actions CI (`mobile-ci.yml`): typecheck + Jest + coverage
+  - Jest tests برای `lib/api`
+  - i18n با `fa-IR` پیش‌فرض + تشخیص خودکار locale دستگاه
+  - Component library: Card, Button, Input, StatusBadge, Empty, Chip
+  - Theme tokens آینهٔ PWA
+  - Redux store با slices: auth + ui
+  - README کامل با deep linking، security، roadmap
+- **Installer**: `migrateMobileDevicesTable()` + `UNIQUE KEY` روی `token(191)` (سازگار با utf8mb4)
+- **Admin**: صفحهٔ `Mobile App` با stats، FCM/APNs config، min app version، maintenance toggle
+- **Bootstrap**: `MobileModule::boot()` به‌صورت خودکار رجیستر می‌شود
+
+### تغییر (Changed)
+
+- `enterprise-core.php` PSR-4 namespaces: `Enterprise\Modules\Mobile\`, `Enterprise\Api\Mobile\` اضافه شد
+- `admin/class-menu.php`: زیرمنوی «Mobile App» اضافه شد
+
 ## [1.7.0] - 2026-07-31 (PWA frontend completed)
 
 ### افزوده (Added)
