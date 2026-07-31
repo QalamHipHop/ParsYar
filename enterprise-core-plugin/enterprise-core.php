@@ -31,6 +31,7 @@ final class Bootstrap
         'Enterprise\\Db\\'              => 'db/',
         'Enterprise\\Rest\\'            => 'rest/',
         'Enterprise\\Frontend\\'        => 'frontend/',
+        'Enterprise\\Support\\'         => 'includes/support/',
     ];
 
     private static ?Bootstrap $instance = null;
