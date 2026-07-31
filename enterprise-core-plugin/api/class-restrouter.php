@@ -419,6 +419,56 @@ final class RestRouter
             'methods'             => 'GET',
             'callback'            => [AccountingController::class, 'trialBalance'],
             'permission_callback' => [AuthController::class, 'capAccounting'],
+            'args' => [
+                'company_id'       => ['required' => false, 'type' => 'integer', 'default' => 1],
+                'fiscal_period_id' => ['required' => false, 'type' => 'integer'],
+                'date_from'        => ['required' => false, 'type' => 'string', 'format' => 'date'],
+                'date_to'          => ['required' => false, 'type' => 'string', 'format' => 'date'],
+                'include_zero'     => ['required' => false, 'type' => 'boolean', 'default' => false],
+            ],
+        ]);
+        register_rest_route($ns, '/accounting/income-statement', [
+            'methods'             => 'GET',
+            'callback'            => [AccountingController::class, 'incomeStatement'],
+            'permission_callback' => [AuthController::class, 'capAccounting'],
+            'args' => [
+                'company_id'       => ['required' => false, 'type' => 'integer', 'default' => 1],
+                'fiscal_period_id' => ['required' => false, 'type' => 'integer'],
+                'date_from'        => ['required' => false, 'type' => 'string', 'format' => 'date'],
+                'date_to'          => ['required' => false, 'type' => 'string', 'format' => 'date'],
+            ],
+        ]);
+        register_rest_route($ns, '/accounting/balance-sheet', [
+            'methods'             => 'GET',
+            'callback'            => [AccountingController::class, 'balanceSheet'],
+            'permission_callback' => [AuthController::class, 'capAccounting'],
+            'args' => [
+                'as_of'            => ['required' => false, 'type' => 'string', 'format' => 'date'],
+                'company_id'       => ['required' => false, 'type' => 'integer', 'default' => 1],
+            ],
+        ]);
+        register_rest_route($ns, '/accounting/general-journal', [
+            'methods'             => 'GET',
+            'callback'            => [AccountingController::class, 'generalJournal'],
+            'permission_callback' => [AuthController::class, 'capAccounting'],
+            'args' => [
+                'company_id'       => ['required' => false, 'type' => 'integer', 'default' => 1],
+                'fiscal_period_id' => ['required' => false, 'type' => 'integer'],
+                'date_from'        => ['required' => false, 'type' => 'string', 'format' => 'date'],
+                'date_to'          => ['required' => false, 'type' => 'string', 'format' => 'date'],
+                'source'           => ['required' => false, 'type' => 'string'],
+                'limit'            => ['required' => false, 'type' => 'integer', 'default' => 200],
+                'offset'           => ['required' => false, 'type' => 'integer', 'default' => 0],
+            ],
+        ]);
+        register_rest_route($ns, '/accounting/account/(?P<code>[0-9A-Z]+)/ledger', [
+            'methods'             => 'GET',
+            'callback'            => [AccountingController::class, 'accountLedger'],
+            'permission_callback' => [AuthController::class, 'capAccounting'],
+            'args' => [
+                'date_from'        => ['required' => false, 'type' => 'string', 'format' => 'date'],
+                'date_to'          => ['required' => false, 'type' => 'string', 'format' => 'date'],
+            ],
         ]);
 
         /* ================================================================== *
