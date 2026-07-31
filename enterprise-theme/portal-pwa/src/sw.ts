@@ -2,12 +2,22 @@
 // Service Worker برای PWA — Workbox به‌صورت خودکار از vite-plugin-pwa ساخته می‌شود
 // این فایل فقط برای push handler سفارشی است.
 
-declare const self: ServiceWorkerGlobalScope;
+// در محیط service worker، `self` به ServiceWorkerGlobalScope اشاره می‌کند
+// اما در lib DOM به Window هم اشاره می‌کند — از طریق type assertion اطمینان حاصل می‌کنیم
+// که TypeScript نوع درست را می‌بیند.
+const sw = self as unknown as ServiceWorkerGlobalScope;
 
-self.addEventListener('push', (event) => {
-  let data: { title?: string; body?: string; url?: string; tag?: string } = { title: 'پورتال ParsYar', body: 'پیام جدید' };
+interface PushPayload {
+  title?: string;
+  body?: string;
+  url?: string;
+  tag?: string;
+}
+
+sw.addEventListener('push', ((event: PushEvent) => {
+  let data: PushPayload = { title: 'پورتال ParsYar', body: 'پیام جدید' };
   try {
-    if (event.data) data = event.data.json();
+    if (event.data) data = event.data.json() as PushPayload;
   } catch {
     // ignore
   }
@@ -19,24 +29,26 @@ self.addEventListener('push', (event) => {
     tag: data.tag || 'parsyar-portal',
     badge: '/pwa-192x192.png',
     icon: '/pwa-192x192.png',
-    data: { url: data.url || '/dashboard' }
+    data: { url: data.url || '/dashboard' },
   };
-  event.waitUntil(self.registration.showNotification(title, options));
-});
+  event.waitUntil(sw.registration.showNotification(title, options));
+}) as EventListener);
 
-self.addEventListener('notificationclick', (event) => {
+sw.addEventListener('notificationclick', ((event: NotificationEvent) => {
   event.notification.close();
-  const url = (event.notification.data?.url as string) || '/dashboard';
+  const url = ((event.notification.data as { url?: string } | undefined)?.url) || '/dashboard';
   event.waitUntil((async () => {
-    const all = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    const all = await sw.clients.matchAll({ type: 'window', includeUncontrolled: true });
     for (const c of all) {
       const u = new URL(c.url);
-      if (u.origin === self.location.origin) {
+      if (u.origin === sw.location.origin) {
         c.focus();
-        c.navigate(url).catch(() => {});
+        if (typeof (c as WindowClient & { navigate?: (url: string) => Promise<void> }).navigate === 'function') {
+          try { await (c as WindowClient & { navigate: (url: string) => Promise<void> }).navigate(url); } catch { /* ignore */ }
+        }
         return;
       }
     }
-    await self.clients.openWindow(url);
+    await sw.clients.openWindow(url);
   })());
-});
+}) as EventListener);

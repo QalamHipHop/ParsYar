@@ -16,13 +16,16 @@ export async function enablePush(): Promise<boolean> {
     const reg = await navigator.serviceWorker.ready;
     let sub = await reg.pushManager.getSubscription();
     if (!sub) {
-      const { key } = await api.vapidPublicKey();
+      const { publicKey } = await api.vapidPublicKey();
+      const keyBytes = urlBase64ToUint8Array(publicKey);
       sub = await reg.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(key)
+        // The DOM lib expects a BufferSource; cast through unknown to avoid
+        // the strict ArrayBuffer vs SharedArrayBuffer mismatch in TS 5.5+.
+        applicationServerKey: keyBytes as unknown as BufferSource,
       });
     }
-    await api.pushSubscribe(sub);
+    await api.subscribePush(sub);
     await api.logEvent('push_enabled', { endpoint_prefix: sub.endpoint.slice(0, 32) });
     return true;
   } catch (e) {
@@ -38,7 +41,7 @@ export async function disablePush(): Promise<boolean> {
     const reg = await navigator.serviceWorker.ready;
     const sub = await reg.pushManager.getSubscription();
     if (sub) {
-      await api.pushUnsubscribe(sub.endpoint);
+      await api.unsubscribePush(sub.endpoint);
       await sub.unsubscribe();
     }
     return true;

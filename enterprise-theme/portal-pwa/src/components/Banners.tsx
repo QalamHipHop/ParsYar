@@ -79,7 +79,7 @@ export function PushBanner() {
       if (perm !== 'granted') { setShow(false); return; }
       const sub = await reg.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(publicKey),
+        applicationServerKey: urlBase64ToUint8Array(publicKey) as unknown as BufferSource,
       });
       await api.subscribePush(sub);
       setSubscribed(true);

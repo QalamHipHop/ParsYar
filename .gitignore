@@ -43,3 +43,9 @@ keys/
 enterprise-theme/portal-pwa/node_modules/
 enterprise-theme/portal-pwa/dist/
 enterprise-theme/portal-pwa/.vite/
+
+# Lockfiles (regenerated on install)
+package-lock.json
+enterprise-theme/package-lock.json
+enterprise-theme/portal-pwa/package-lock.json
+enterprise-core-plugin/composer.lock
