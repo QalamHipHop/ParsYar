@@ -90,6 +90,21 @@ final class Installer
             KEY idx_child (child_object_id)
         ) {$charset};";
 
+        $sql[] = "CREATE TABLE {$prefix}relations (
+            id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            from_type VARCHAR(64) NOT NULL,
+            from_id BIGINT UNSIGNED NOT NULL,
+            to_type VARCHAR(64) NOT NULL,
+            to_id BIGINT UNSIGNED NOT NULL,
+            relation_type VARCHAR(64) NOT NULL,
+            meta LONGTEXT NULL,
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            KEY idx_from (from_type, from_id),
+            KEY idx_to (to_type, to_id),
+            KEY idx_relation (relation_type),
+            UNIQUE KEY uniq_link (from_type, from_id, to_type, to_id, relation_type)
+        ) {$charset};";
+
         $sql[] = "CREATE TABLE {$prefix}records (
             id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
             object_id BIGINT UNSIGNED NOT NULL,
@@ -109,8 +124,19 @@ final class Installer
             code VARCHAR(32) NOT NULL UNIQUE,
             name VARCHAR(255) NOT NULL,
             type ENUM('asset','liability','equity','revenue','expense') NOT NULL,
+            nature ENUM('debit','credit') NOT NULL DEFAULT 'debit',
             parent_id BIGINT UNSIGNED NULL,
-            is_active TINYINT(1) NOT NULL DEFAULT 1
+            is_active TINYINT(1) NOT NULL DEFAULT 1,
+            is_system TINYINT(1) NOT NULL DEFAULT 0,
+            balance_debit DECIMAL(20,2) NOT NULL DEFAULT 0,
+            balance_credit DECIMAL(20,2) NOT NULL DEFAULT 0,
+            description TEXT NULL,
+            deleted_at DATETIME NULL,
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            KEY idx_type (type),
+            KEY idx_parent (parent_id),
+            KEY idx_active (is_active)
         ) {$charset};";
 
         $sql[] = "CREATE TABLE {$prefix}journal_entries (
@@ -120,21 +146,45 @@ final class Installer
             description VARCHAR(512) NULL,
             source VARCHAR(64) NULL,
             source_ref VARCHAR(128) NULL,
+            fiscal_period_id BIGINT UNSIGNED NULL,
+            company_id BIGINT UNSIGNED NULL DEFAULT 1,
+            branch_id BIGINT UNSIGNED NULL,
+            currency CHAR(3) NOT NULL DEFAULT 'IRT',
+            total_debit DECIMAL(20,2) NOT NULL DEFAULT 0,
+            total_credit DECIMAL(20,2) NOT NULL DEFAULT 0,
             status ENUM('draft','posted','reversed') NOT NULL DEFAULT 'posted',
+            meta LONGTEXT NULL,
+            posted_by BIGINT UNSIGNED NULL,
             posted_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            reversed_by BIGINT UNSIGNED NULL,
+            reversed_at DATETIME NULL,
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
             KEY idx_date (entry_date),
-            KEY idx_source (source, source_ref)
+            KEY idx_source (source, source_ref),
+            KEY idx_period (fiscal_period_id),
+            KEY idx_company (company_id),
+            KEY idx_branch (branch_id),
+            KEY idx_status (status),
+            KEY idx_posted_by (posted_by)
         ) {$charset};";
 
         $sql[] = "CREATE TABLE {$prefix}journal_lines (
             id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
             entry_id BIGINT UNSIGNED NOT NULL,
             account_id BIGINT UNSIGNED NOT NULL,
-            debit DECIMAL(20,2) NOT NULL DEFAULT 0,
-            credit DECIMAL(20,2) NOT NULL DEFAULT 0,
+            debit DECIMAL(20,4) NOT NULL DEFAULT 0,
+            credit DECIMAL(20,4) NOT NULL DEFAULT 0,
             description VARCHAR(512) NULL,
+            cost_center VARCHAR(64) NULL,
+            project_id BIGINT UNSIGNED NULL,
+            currency CHAR(3) NOT NULL DEFAULT 'IRT',
+            fx_rate DECIMAL(20,6) NOT NULL DEFAULT 1.0,
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
             KEY idx_entry (entry_id),
-            KEY idx_account (account_id)
+            KEY idx_account (account_id),
+            KEY idx_project (project_id),
+            KEY idx_cost_center (cost_center)
         ) {$charset};";
 
         $sql[] = "CREATE TABLE {$prefix}audit_log (
