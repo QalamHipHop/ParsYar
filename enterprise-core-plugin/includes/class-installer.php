@@ -10,7 +10,7 @@ defined('ABSPATH') || exit;
  */
 final class Installer
 {
-    public const VERSION = '1.2.1';
+    public const VERSION = '1.3.0';
 
     public static function activate(): void
     {
@@ -45,6 +45,13 @@ final class Installer
 
         // اگه جدول accounts خالیه (نصب قدیمی‌ای که seed شکست خورده)، seed کن
         self::seedAccountsIfEmpty();
+
+        // مهاجرت v1.3.0: جدول‌های جدید (HR extensions, Inbox, Deals, Pipelines,
+        // Leads extensions, Tax invoice, Notification preferences, Action queue)
+        self::migrateV130Tables();
+
+        // مهاجرت v1.3.0: گسترش ent_employees / ent_attendance با ستون‌های اضافی
+        self::migrateEmployeesExtension();
 
         // نسخه را ذخیره کن
         update_option('enterprise_db_version', self::VERSION);
@@ -697,6 +704,365 @@ final class Installer
             $count++;
         }
         return $count;
+    }
+
+    /**
+     * مهاجرت v1.3.0 — جدول‌های جدید برای ماژول‌های تکمیل‌نشده.
+     *
+     * شامل:
+     *  - ent_deals (معاملات) + ent_pipelines (خط لوله‌ها) + ent_pipeline_stages
+     *  - parsyar_inbox_channels, parsyar_inbox_threads, parsyar_inbox_messages
+     *  - parsyar_action_queue (صف اقدامات ناهمزمان)
+     *  - parsyar_tax_invoices (e-Invoice رکورد)
+     *  - parsyar_notification_prefs (تنظیمات اعلان)
+     *  - parsyar_companies, parsyar_branches (چند-شرکتی)
+     *  - parsyar_leave_requests (مرخصی)
+     *  - parsyar_payroll_runs (تاریخچهٔ اجرای حقوق)
+     *
+     * تمامی dbDelta ها idempotent هستند.
+     */
+    private static function migrateV130Tables(): void
+    {
+        require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+        global $wpdb;
+        $charset  = $wpdb->get_charset_collate();
+        $ent      = $wpdb->prefix . 'ent_';
+        $parsyar  = $wpdb->prefix . 'parsyar_';
+
+        $sql = [];
+
+        /* ----- ent_deals ----------------------------------------------------- */
+        $sql[] = "CREATE TABLE {$ent}deals (
+            id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            uuid CHAR(36) NOT NULL UNIQUE,
+            name VARCHAR(255) NOT NULL,
+            pipeline_id BIGINT UNSIGNED NULL,
+            stage_id BIGINT UNSIGNED NULL,
+            amount DECIMAL(20,2) NOT NULL DEFAULT 0,
+            currency CHAR(3) NOT NULL DEFAULT 'IRT',
+            probability TINYINT UNSIGNED NOT NULL DEFAULT 50,
+            expected_close_date DATE NULL,
+            actual_close_date DATE NULL,
+            contact_id BIGINT UNSIGNED NULL,
+            organization_id BIGINT UNSIGNED NULL,
+            lead_id BIGINT UNSIGNED NULL,
+            owner_id BIGINT UNSIGNED NULL,
+            status ENUM('open','won','lost','on_hold') NOT NULL DEFAULT 'open',
+            lost_reason VARCHAR(255) NULL,
+            source VARCHAR(64) NULL,
+            description TEXT NULL,
+            last_activity_at DATETIME NULL,
+            closed_at DATETIME NULL,
+            branch_id BIGINT UNSIGNED NULL,
+            company_id BIGINT UNSIGNED NULL,
+            meta LONGTEXT NULL,
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            KEY idx_pipeline (pipeline_id),
+            KEY idx_stage (stage_id),
+            KEY idx_status (status),
+            KEY idx_owner (owner_id),
+            KEY idx_close (expected_close_date)
+        ) {$charset};";
+
+        /* ----- ent_pipelines ------------------------------------------------- */
+        $sql[] = "CREATE TABLE {$ent}pipelines (
+            id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            name VARCHAR(128) NOT NULL,
+            code VARCHAR(64) NOT NULL UNIQUE,
+            description TEXT NULL,
+            is_default TINYINT(1) NOT NULL DEFAULT 0,
+            is_active TINYINT(1) NOT NULL DEFAULT 1,
+            currency CHAR(3) NOT NULL DEFAULT 'IRT',
+            sort_order INT NOT NULL DEFAULT 0,
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        ) {$charset};";
+
+        $sql[] = "CREATE TABLE {$ent}pipeline_stages (
+            id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            pipeline_id BIGINT UNSIGNED NOT NULL,
+            name VARCHAR(128) NOT NULL,
+            code VARCHAR(64) NOT NULL,
+            probability TINYINT UNSIGNED NOT NULL DEFAULT 0,
+            sort_order INT NOT NULL DEFAULT 0,
+            color VARCHAR(16) NULL,
+            is_won TINYINT(1) NOT NULL DEFAULT 0,
+            is_lost TINYINT(1) NOT NULL DEFAULT 0,
+            KEY idx_pipeline (pipeline_id),
+            UNIQUE KEY uniq_pipe_code (pipeline_id, code)
+        ) {$charset};";
+
+        /* ----- Inbox --------------------------------------------------------- */
+        $sql[] = "CREATE TABLE {$parsyar}inbox_channels (
+            id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            code VARCHAR(64) NOT NULL UNIQUE,
+            name VARCHAR(128) NOT NULL,
+            is_active TINYINT(1) NOT NULL DEFAULT 1,
+            config_json LONGTEXT NULL,
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME NULL
+        ) {$charset};";
+
+        $sql[] = "CREATE TABLE {$parsyar}inbox_threads (
+            id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            uuid CHAR(36) NOT NULL UNIQUE,
+            channel_code VARCHAR(64) NOT NULL,
+            subject VARCHAR(255) NULL,
+            contact_id BIGINT UNSIGNED NULL,
+            customer_name VARCHAR(255) NULL,
+            customer_handle VARCHAR(255) NULL,
+            status ENUM('open','pending','closed','spam') NOT NULL DEFAULT 'open',
+            assigned_to BIGINT UNSIGNED NULL,
+            last_message_at DATETIME NULL,
+            unread_count INT NOT NULL DEFAULT 0,
+            tags JSON NULL,
+            meta LONGTEXT NULL,
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            KEY idx_channel (channel_code),
+            KEY idx_status (status),
+            KEY idx_assigned (assigned_to),
+            KEY idx_last_msg (last_message_at),
+            KEY idx_contact (contact_id)
+        ) {$charset};";
+
+        $sql[] = "CREATE TABLE {$parsyar}inbox_messages (
+            id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            uuid CHAR(36) NOT NULL UNIQUE,
+            thread_id BIGINT UNSIGNED NOT NULL,
+            direction ENUM('inbound','outbound') NOT NULL,
+            sender_handle VARCHAR(255) NULL,
+            sender_name VARCHAR(255) NULL,
+            body LONGTEXT NOT NULL,
+            body_html LONGTEXT NULL,
+            attachments JSON NULL,
+            status ENUM('queued','sent','delivered','read','failed') NOT NULL DEFAULT 'sent',
+            external_id VARCHAR(255) NULL,
+            error TEXT NULL,
+            sent_at DATETIME NULL,
+            read_at DATETIME NULL,
+            created_by BIGINT UNSIGNED NULL,
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            KEY idx_thread (thread_id),
+            KEY idx_status (status),
+            KEY idx_external (external_id),
+            KEY idx_created (created_at)
+        ) {$charset};";
+
+        /* ----- Action queue -------------------------------------------------- */
+        $sql[] = "CREATE TABLE {$parsyar}action_queue (
+            id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            hook VARCHAR(128) NOT NULL,
+            payload LONGTEXT NOT NULL,
+            priority TINYINT UNSIGNED NOT NULL DEFAULT 10,
+            attempts TINYINT UNSIGNED NOT NULL DEFAULT 0,
+            max_attempts TINYINT UNSIGNED NOT NULL DEFAULT 5,
+            scheduled_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            started_at DATETIME NULL,
+            finished_at DATETIME NULL,
+            status ENUM('pending','running','done','failed','cancelled') NOT NULL DEFAULT 'pending',
+            last_error TEXT NULL,
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            KEY idx_hook (hook),
+            KEY idx_status (status),
+            KEY idx_scheduled (scheduled_at)
+        ) {$charset};";
+
+        /* ----- Tax invoice --------------------------------------------------- */
+        $sql[] = "CREATE TABLE {$parsyar}tax_invoices (
+            id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            uuid CHAR(36) NOT NULL UNIQUE,
+            invoice_id BIGINT UNSIGNED NOT NULL,
+            tax_invoice_uid VARCHAR(64) NULL UNIQUE,
+            pattern ENUM('pattern_1','pattern_2','pattern_3') NOT NULL DEFAULT 'pattern_1',
+            status ENUM('draft','queued','submitted','confirmed','rejected','failed') NOT NULL DEFAULT 'draft',
+            payload LONGTEXT NULL,
+            signature LONGTEXT NULL,
+            reference_id VARCHAR(128) NULL,
+            error_code VARCHAR(64) NULL,
+            error_message TEXT NULL,
+            submitted_at DATETIME NULL,
+            confirmed_at DATETIME NULL,
+            retry_count TINYINT UNSIGNED NOT NULL DEFAULT 0,
+            next_retry_at DATETIME NULL,
+            meta LONGTEXT NULL,
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            KEY idx_invoice (invoice_id),
+            KEY idx_status (status),
+            KEY idx_retry (next_retry_at)
+        ) {$charset};";
+
+        /* ----- Notification prefs ------------------------------------------- */
+        $sql[] = "CREATE TABLE {$parsyar}notification_prefs (
+            id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            user_id BIGINT UNSIGNED NOT NULL,
+            event VARCHAR(64) NOT NULL,
+            channel ENUM('email','sms','push','inbox') NOT NULL,
+            is_enabled TINYINT(1) NOT NULL DEFAULT 1,
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE KEY uniq_user_event_channel (user_id, event, channel)
+        ) {$charset};";
+
+        /* ----- Companies / Branches (multi-tenant) ------------------------- */
+        $sql[] = "CREATE TABLE {$parsyar}companies (
+            id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            uuid CHAR(36) NOT NULL UNIQUE,
+            name VARCHAR(255) NOT NULL,
+            legal_name VARCHAR(255) NULL,
+            national_id VARCHAR(32) NULL,
+            economic_code VARCHAR(32) NULL,
+            registration_no VARCHAR(64) NULL,
+            phone VARCHAR(32) NULL,
+            email VARCHAR(190) NULL,
+            address_line1 VARCHAR(255) NULL,
+            address_line2 VARCHAR(255) NULL,
+            city VARCHAR(128) NULL,
+            province VARCHAR(128) NULL,
+            postal_code VARCHAR(20) NULL,
+            country CHAR(2) NOT NULL DEFAULT 'IR',
+            currency CHAR(3) NOT NULL DEFAULT 'IRT',
+            fiscal_year_start_month TINYINT UNSIGNED NOT NULL DEFAULT 1,
+            calendar_type ENUM('gregorian','jalali') NOT NULL DEFAULT 'jalali',
+            is_default TINYINT(1) NOT NULL DEFAULT 0,
+            is_active TINYINT(1) NOT NULL DEFAULT 1,
+            meta LONGTEXT NULL,
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            KEY idx_default (is_default),
+            KEY idx_active (is_active)
+        ) {$charset};";
+
+        $sql[] = "CREATE TABLE {$parsyar}branches (
+            id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            uuid CHAR(36) NOT NULL UNIQUE,
+            company_id BIGINT UNSIGNED NOT NULL,
+            code VARCHAR(64) NOT NULL,
+            name VARCHAR(255) NOT NULL,
+            name_en VARCHAR(255) NULL,
+            manager_user_id BIGINT UNSIGNED NULL,
+            phone VARCHAR(32) NULL,
+            address_line1 VARCHAR(255) NULL,
+            address_line2 VARCHAR(255) NULL,
+            city VARCHAR(128) NULL,
+            province VARCHAR(128) NULL,
+            postal_code VARCHAR(20) NULL,
+            country CHAR(2) NOT NULL DEFAULT 'IR',
+            lat DECIMAL(10,7) NULL,
+            lng DECIMAL(10,7) NULL,
+            is_default TINYINT(1) NOT NULL DEFAULT 0,
+            is_active TINYINT(1) NOT NULL DEFAULT 1,
+            meta LONGTEXT NULL,
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            UNIQUE KEY uniq_company_code (company_id, code),
+            KEY idx_company (company_id)
+        ) {$charset};";
+
+        /* ----- Leave requests ----------------------------------------------- */
+        $sql[] = "CREATE TABLE {$parsyar}leave_requests (
+            id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            uuid CHAR(36) NOT NULL UNIQUE,
+            employee_id BIGINT UNSIGNED NOT NULL,
+            type ENUM('annual','sick','unpaid','maternity','paternity','mission','other') NOT NULL DEFAULT 'annual',
+            start_date DATE NOT NULL,
+            end_date DATE NOT NULL,
+            days_count DECIMAL(4,1) NOT NULL DEFAULT 1,
+            reason TEXT NULL,
+            status ENUM('pending','approved','rejected','cancelled') NOT NULL DEFAULT 'pending',
+            approver_id BIGINT UNSIGNED NULL,
+            approved_at DATETIME NULL,
+            decision_note TEXT NULL,
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            KEY idx_employee (employee_id),
+            KEY idx_status (status),
+            KEY idx_dates (start_date, end_date)
+        ) {$charset};";
+
+        /* ----- Payroll runs -------------------------------------------------- */
+        $sql[] = "CREATE TABLE {$parsyar}payroll_runs (
+            id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            uuid CHAR(36) NOT NULL UNIQUE,
+            period VARCHAR(16) NOT NULL,
+            company_id BIGINT UNSIGNED NULL,
+            branch_id BIGINT UNSIGNED NULL,
+            employee_count INT NOT NULL DEFAULT 0,
+            total_gross DECIMAL(20,2) NOT NULL DEFAULT 0,
+            total_net DECIMAL(20,2) NOT NULL DEFAULT 0,
+            total_tax DECIMAL(20,2) NOT NULL DEFAULT 0,
+            total_insurance DECIMAL(20,2) NOT NULL DEFAULT 0,
+            currency CHAR(3) NOT NULL DEFAULT 'IRT',
+            status ENUM('draft','running','completed','failed') NOT NULL DEFAULT 'completed',
+            run_by BIGINT UNSIGNED NULL,
+            note TEXT NULL,
+            meta LONGTEXT NULL,
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            KEY idx_period (period),
+            KEY idx_status (status),
+            KEY idx_company (company_id)
+        ) {$charset};";
+
+        /* ----- Lead extension ------------------------------------------------ */
+        $sql[] = "CREATE TABLE {$parsyar}lead_history (
+            id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            lead_id BIGINT UNSIGNED NOT NULL,
+            action VARCHAR(64) NOT NULL,
+            payload LONGTEXT NULL,
+            actor_id BIGINT UNSIGNED NULL,
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            KEY idx_lead (lead_id),
+            KEY idx_action (action)
+        ) {$charset};";
+
+        foreach ($sql as $stmt) {
+            dbDelta($stmt);
+        }
+    }
+
+    /**
+     * مهاجرت v1.3.0 — گسترش ent_employees / ent_attendance با ستون‌های اضافی.
+     */
+    private static function migrateEmployeesExtension(): void
+    {
+        global $wpdb;
+        $charset = $wpdb->get_charset_collate();
+        $table   = $wpdb->prefix . 'ent_employees';
+        $exists  = $wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $table));
+        if (!$exists) {
+            return;
+        }
+        $columns = $wpdb->get_results("SHOW COLUMNS FROM {$table}", ARRAY_A);
+        $have    = array_column($columns, 'Field');
+        $add = [
+            'email'           => "VARCHAR(190) NULL AFTER user_id",
+            'phone'           => "VARCHAR(32) NULL AFTER email",
+            'gender'          => "ENUM('male','female','other') NULL",
+            'birth_date'      => "DATE NULL",
+            'department'      => "VARCHAR(128) NULL",
+            'manager_id'      => "BIGINT UNSIGNED NULL",
+            'employment_type' => "ENUM('full_time','part_time','contract','intern','freelance') NOT NULL DEFAULT 'full_time'",
+            'status'          => "ENUM('active','suspended','terminated','on_leave') NOT NULL DEFAULT 'active'",
+            'termination_date'=> "DATE NULL",
+            'bank_account'    => "VARCHAR(64) NULL",
+            'bank_sheba'      => "VARCHAR(32) NULL",
+            'bank_card'       => "VARCHAR(32) NULL",
+            'address'         => "VARCHAR(512) NULL",
+            'avatar_url'      => "VARCHAR(512) NULL",
+            'branch_id'       => "BIGINT UNSIGNED NULL",
+            'company_id'      => "BIGINT UNSIGNED NULL DEFAULT 1",
+            'meta'            => "LONGTEXT NULL",
+            'updated_at'      => "DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP",
+        ];
+        foreach ($add as $col => $def) {
+            if (in_array($col, $have, true)) {
+                continue;
+            }
+            $wpdb->query("ALTER TABLE {$table} ADD COLUMN {$col} {$def}");
+        }
+        // اصلاح UNIQUE ملی → اجازهٔ تکرار در نصب قدیمی (نمی‌توانیم unique را مستقیم برداریم
+        // پس با prefix می‌سازیم اگر لازم بود). فعلاً skip.
     }
 
     private static function ensureCapabilities(): void

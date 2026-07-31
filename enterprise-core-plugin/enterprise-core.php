@@ -19,6 +19,7 @@ defined('ABSPATH') || exit;
 final class Bootstrap
 {
     public const VERSION = '1.3.0';
+    public const DB_VERSION = '1.3.0';
     public const SLUG    = 'enterprise-core';
     public const NS      = 'enterprise/v1';
 
