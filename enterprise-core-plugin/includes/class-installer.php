@@ -173,15 +173,86 @@ final class Installer
             created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
         ) {$charset};";
 
+        $sql[] = "CREATE TABLE {$prefix}warehouses (
+            id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            code VARCHAR(32) NOT NULL UNIQUE,
+            name VARCHAR(255) NOT NULL,
+            name_en VARCHAR(255) NULL,
+            type ENUM('main','branch','virtual','consignment','transit') NOT NULL DEFAULT 'main',
+            manager_user_id BIGINT UNSIGNED NULL,
+            branch_id BIGINT UNSIGNED NULL,
+            company_id BIGINT UNSIGNED NOT NULL DEFAULT 1,
+            phone VARCHAR(32) NULL,
+            address_line1 VARCHAR(255) NULL,
+            address_line2 VARCHAR(255) NULL,
+            city VARCHAR(128) NULL,
+            province VARCHAR(128) NULL,
+            postal_code VARCHAR(20) NULL,
+            country CHAR(2) NOT NULL DEFAULT 'IR',
+            lat DECIMAL(10,7) NULL,
+            lng DECIMAL(10,7) NULL,
+            is_active TINYINT(1) NOT NULL DEFAULT 1,
+            is_default TINYINT(1) NOT NULL DEFAULT 0,
+            notes TEXT NULL,
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            KEY idx_company (company_id),
+            KEY idx_type (type),
+            KEY idx_active (is_active)
+        ) {$charset};";
+
         $sql[] = "CREATE TABLE {$prefix}products (
             id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
             sku VARCHAR(64) NOT NULL UNIQUE,
+            barcode VARCHAR(64) NULL,
             name VARCHAR(255) NOT NULL,
+            name_en VARCHAR(255) NULL,
+            description TEXT NULL,
+            category_id BIGINT UNSIGNED NULL,
+            brand VARCHAR(128) NULL,
+            product_type ENUM('physical','service','digital','subscription','bundle') NOT NULL DEFAULT 'physical',
             unit VARCHAR(16) NOT NULL DEFAULT 'عدد',
+            unit_symbol VARCHAR(8) NULL,
+            weight_kg DECIMAL(10,3) NULL,
+            volume_m3 DECIMAL(10,4) NULL,
             cost DECIMAL(20,2) NOT NULL DEFAULT 0,
+            cost_method ENUM('fifo','lifo','wac','specific') NOT NULL DEFAULT 'wac',
             price DECIMAL(20,2) NOT NULL DEFAULT 0,
+            currency CHAR(3) NOT NULL DEFAULT 'IRT',
+            tax_rate DECIMAL(5,2) NOT NULL DEFAULT 10.00,
+            taxable TINYINT(1) NOT NULL DEFAULT 1,
+            track_stock TINYINT(1) NOT NULL DEFAULT 1,
+            lot_tracked TINYINT(1) NOT NULL DEFAULT 0,
+            serial_tracked TINYINT(1) NOT NULL DEFAULT 0,
             stock INT NOT NULL DEFAULT 0,
-            taxable TINYINT(1) NOT NULL DEFAULT 1
+            min_stock INT NOT NULL DEFAULT 0,
+            max_stock INT NOT NULL DEFAULT 0,
+            reorder_point INT NOT NULL DEFAULT 0,
+            image_url VARCHAR(512) NULL,
+            tags JSON NULL,
+            custom_fields JSON NULL,
+            is_active TINYINT(1) NOT NULL DEFAULT 1,
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            KEY idx_category (category_id),
+            KEY idx_brand (brand),
+            KEY idx_active (is_active),
+            KEY idx_barcode (barcode)
+        ) {$charset};";
+
+        $sql[] = "CREATE TABLE {$prefix}product_categories (
+            id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            parent_id BIGINT UNSIGNED NULL,
+            name VARCHAR(255) NOT NULL,
+            name_en VARCHAR(255) NULL,
+            slug VARCHAR(128) NOT NULL UNIQUE,
+            description TEXT NULL,
+            icon VARCHAR(64) NULL,
+            sort_order INT NOT NULL DEFAULT 0,
+            is_active TINYINT(1) NOT NULL DEFAULT 1,
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            KEY idx_parent (parent_id),
+            KEY idx_active (is_active)
         ) {$charset};";
 
         $sql[] = "CREATE TABLE {$prefix}invoices (
