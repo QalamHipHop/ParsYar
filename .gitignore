@@ -1,8 +1,10 @@
 node_modules/
-vendor/
+# Composer-installed PHP dependencies (auto-installed via composer install)
+enterprise-core-plugin/vendor/
+# React/SPA build output
+enterprise-theme/dist/
 *.log
 .DS_Store
-dist/
 build/
 .cache/
 *.zip

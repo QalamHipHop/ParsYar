@@ -115,13 +115,23 @@ add_action('wp_enqueue_scripts', static function (): void {
         'print'
     );
 
-    // Vendor (only on dashboard)
+    // Vendor (only on dashboard) — gracefully skip missing files
     if (parsyar_is_dashboard()) {
-        wp_enqueue_script('parsyar-dayjs', $uri . '/assets/vendor/dayjs/dayjs.min.js', [], '1.11.10', true);
-        wp_enqueue_script('parsyar-dayjs-jalali', $uri . '/assets/vendor/dayjs/dayjs-jalali.min.js', ['parsyar-dayjs'], '1.11.10', true);
-        wp_enqueue_script('parsyar-sortable', $uri . '/assets/vendor/sortable.min.js', [], '1.15.2', true);
-        wp_enqueue_script('parsyar-tippy', $uri . '/assets/vendor/tippy.min.js', [], '6.3.7', true);
-        wp_enqueue_script('parsyar-chart', $uri . '/assets/vendor/chart.umd.min.js', [], '4.4.0', true);
+        $vendor_assets = [
+            'parsyar-dayjs'         => 'vendor/dayjs/dayjs.min.js',
+            'parsyar-dayjs-jalali'  => 'vendor/dayjs/dayjs-jalali.min.js',
+            'parsyar-sortable'      => 'vendor/sortable.min.js',
+            'parsyar-tippy'         => 'vendor/tippy.min.js',
+            'parsyar-chart'         => 'vendor/chart.js/chart.umd.min.js',
+        ];
+        $deps = [];
+        foreach ($vendor_assets as $handle => $rel) {
+            $path = $dir . '/assets/' . $rel;
+            if (file_exists($path)) {
+                wp_enqueue_script($handle, $uri . '/assets/' . $rel, $deps, parsyar_get_asset_version($rel), true);
+                $deps[] = $handle;
+            }
+        }
     }
 
     // Core JS
