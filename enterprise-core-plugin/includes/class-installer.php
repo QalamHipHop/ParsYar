@@ -255,6 +255,30 @@ final class Installer
             KEY idx_active (is_active)
         ) {$charset};";
 
+        $sql[] = "CREATE TABLE {$prefix}stock_movements (
+            id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            product_id BIGINT UNSIGNED NOT NULL,
+            warehouse_id BIGINT UNSIGNED NOT NULL,
+            type ENUM('in','out','transfer','adjust','reserve','release') NOT NULL,
+            quantity DECIMAL(20,4) NOT NULL DEFAULT 0,
+            unit_cost DECIMAL(20,4) NOT NULL DEFAULT 0,
+            reason VARCHAR(255) NULL,
+            source VARCHAR(64) NULL,
+            source_ref VARCHAR(128) NULL,
+            lot_no VARCHAR(64) NULL,
+            serial_no VARCHAR(128) NULL,
+            expires_at DATE NULL,
+            meta LONGTEXT NULL,
+            movement_date DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            created_by BIGINT UNSIGNED NULL,
+            KEY idx_product (product_id),
+            KEY idx_warehouse (warehouse_id),
+            KEY idx_type (type),
+            KEY idx_date (movement_date),
+            KEY idx_source (source, source_ref),
+            KEY idx_lot (product_id, warehouse_id, lot_no)
+        ) {$charset};";
+
         $sql[] = "CREATE TABLE {$prefix}invoices (
             id BIGINT UNSIGNED AUTO_INSIGNED PRIMARY KEY,
             invoice_no VARCHAR(32) NOT NULL UNIQUE,
