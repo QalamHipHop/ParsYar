@@ -6,7 +6,7 @@
 [![WordPress](https://img.shields.io/badge/WordPress-6.5%2B-21759b)](https://wordpress.org)
 [![MySQL](https://img.shields.io/badge/MySQL-8.0%2B%20%7C%20MariaDB-10.6%2B-4479a1)](https://www.mysql.com)
 [![License](https://img.shields.io/badge/license-GPL--2.0--or--later-blue)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.3.0-black)]()
+[![Version](https://img.shields.io/badge/version-1.5.0-black)]()
 [![CI](https://github.com/QalamHipHop/ParsYar/actions/workflows/ci.yml/badge.svg)](https://github.com/QalamHipHop/ParsYar/actions/workflows/ci.yml)
 [![Architecture](https://img.shields.io/badge/architecture-layered-black)]()
 [![No third-party deps](https://img.shields.io/badge/dependencies-zero-black)]()
@@ -432,8 +432,8 @@ wp enterprise demo load
 - [x] **1.1.0** — Full CRM (Leads, Contacts, Deals, Activities, scoring, dedup, pipeline)
 - [x] **1.2.0** — Full ERP (Products, Inventory, Invoices, Payments, Refunds)
 - [x] **1.3.0** — 23-step Setup Wizard + Māndian e-Invoice (full spec, JWS-signed)
-- [ ] **1.4.0** — Full HRM (Employees, Attendance, Leave, Payroll, Performance) + CSAT
-- [ ] **1.5.0** — Visual Workflow Editor (drag-drop node graph)
+- [x] **1.4.0** — Full HRM (Employees, Attendance, Leave, Payroll, Performance)
+- [x] **1.5.0** — Visual Workflow Editor (drag-drop node graph + 12 node types + templates)
 - [ ] **1.6.0** — Custom Report Builder
 - [ ] **1.7.0** — Customer Portal (PWA)
 - [ ] **1.8.0** — Mobile app (React Native)

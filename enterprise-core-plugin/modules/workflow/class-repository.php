@@ -217,4 +217,170 @@ final class Repository
             'edges'   => $edges,
         ];
     }
+
+    /**
+     * تکرار یک Workflow (برای قالب‌ها و کپی سریع).
+     */
+    public static function duplicate(int $id, ?string $newName = null): int
+    {
+        $src = self::find($id);
+        if (!$src) {
+            return 0;
+        }
+        return self::create([
+            'name'          => $newName ?? ($src['name'] . ' (کپی)'),
+            'trigger_event' => $src['trigger_event'],
+            'graph'         => is_array($src['graph']) ? $src['graph'] : [],
+            'is_active'     => false,
+            'description'   => $src['description'] ?? '',
+        ]);
+    }
+
+    /**
+     * اجرای دستی یک Workflow (صرف‌نظر از trigger).
+     */
+    public static function runManually(int $id, array $payload = []): int
+    {
+        $wf = self::find($id);
+        if (!$wf) {
+            return 0;
+        }
+        $runId = self::startRun($id, 'manual', $payload);
+        try {
+            \Enterprise\Modules\Workflow\Dispatcher::handle('manual', $payload);
+            self::finishRun($runId, 'success');
+        } catch (\Throwable $e) {
+            self::log($id, $runId, 'error', $e->getMessage());
+            self::finishRun($runId, 'failed', $e->getMessage());
+        }
+        return $runId;
+    }
+
+    /**
+     * لیست runs اخیر یک workflow.
+     */
+    public static function recentRuns(int $workflowId, int $limit = 20): array
+    {
+        $rows = \Enterprise\Support\Db::getResults(
+            'workflow_runs',
+            ['workflow_id' => $workflowId],
+            'id DESC',
+            $limit,
+            0,
+            'parsyar'
+        );
+        return array_map(static function (array $r): array {
+            $r['payload'] = $r['payload'] ? json_decode((string) $r['payload'], true) : null;
+            return $r;
+        }, $rows);
+    }
+
+    /**
+     * آمار کلی سیستم Workflow.
+     */
+    public static function stats(): array
+    {
+        global $wpdb;
+        $wfTable  = $wpdb->prefix . 'parsyar_workflows';
+        $runTable = $wpdb->prefix . 'parsyar_workflow_runs';
+
+        $total   = (int) $wpdb->get_var("SELECT COUNT(*) FROM {$wfTable}");
+        $active  = (int) $wpdb->get_var("SELECT COUNT(*) FROM {$wfTable} WHERE is_active = 1");
+        $runsAll = (int) $wpdb->get_var("SELECT COUNT(*) FROM {$runTable}");
+        $runsOk  = (int) $wpdb->get_var("SELECT COUNT(*) FROM {$runTable} WHERE status = 'success'");
+        $runsErr = (int) $wpdb->get_var("SELECT COUNT(*) FROM {$runTable} WHERE status = 'failed'");
+
+        return [
+            'workflows_total'    => $total,
+            'workflows_active'   => $active,
+            'runs_total'         => $runsAll,
+            'runs_success'       => $runsOk,
+            'runs_failed'        => $runsErr,
+            'success_rate'       => $runsAll > 0 ? round(($runsOk / $runsAll) * 100, 1) : 0.0,
+        ];
+    }
+
+    /**
+     * قالب‌های آماده (برای شروع سریع در editor بصری).
+     */
+    public static function templates(): array
+    {
+        return [
+            [
+                'id'      => 'welcome-lead',
+                'name'    => 'خوش‌آمدگویی به سرنخ جدید',
+                'trigger' => 'lead.created',
+                'graph'   => [
+                    'nodes' => [
+                        ['id' => 'n1', 'type' => 'start',    'label' => 'شروع',     'x' => 100, 'y' => 100, 'config' => []],
+                        ['id' => 'n2', 'type' => 'send_sms', 'label' => 'ارسال SMS', 'x' => 320, 'y' => 100, 'config' => [
+                            'to'      => '{{ lead.mobile }}',
+                            'message' => 'سلام {{ lead.first_name }}، از علاقهٔ شما متشکریم.',
+                        ]],
+                        ['id' => 'n3', 'type' => 'end',      'label' => 'پایان',    'x' => 540, 'y' => 100, 'config' => []],
+                    ],
+                    'edges' => [
+                        ['id' => 'e1', 'from' => 'n1', 'to' => 'n2', 'label' => 'default'],
+                        ['id' => 'e2', 'from' => 'n2', 'to' => 'n3', 'label' => 'default'],
+                    ],
+                ],
+            ],
+            [
+                'id'      => 'overdue-reminder',
+                'name'    => 'یادآوری فاکتور معوقه',
+                'trigger' => 'invoice.overdue',
+                'graph'   => [
+                    'nodes' => [
+                        ['id' => 'n1', 'type' => 'start',     'label' => 'شروع',         'x' => 100, 'y' => 100, 'config' => []],
+                        ['id' => 'n2', 'type' => 'condition', 'label' => 'مبلغ > 1M؟',   'x' => 320, 'y' => 100, 'config' => [
+                            'field' => 'invoice.amount', 'op' => '>', 'value' => 1000000,
+                        ]],
+                        ['id' => 'n3', 'type' => 'send_email', 'label' => 'ایمیل مدیر',  'x' => 540, 'y' => 30,  'config' => [
+                            'to' => 'admin@company.ir', 'subject' => 'فاکتور معوقه بزرگ', 'body' => 'فاکتور شماره {{ invoice.id }} معوقه شد.',
+                        ]],
+                        ['id' => 'n4', 'type' => 'send_sms',  'label' => 'پیامک مشتری',  'x' => 540, 'y' => 170, 'config' => [
+                            'to' => '{{ invoice.contact_mobile }}',
+                            'message' => 'صورتحساب شما معوقه شده، لطفاً پرداخت کنید.',
+                        ]],
+                        ['id' => 'n5', 'type' => 'end',       'label' => 'پایان',        'x' => 760, 'y' => 100, 'config' => []],
+                    ],
+                    'edges' => [
+                        ['id' => 'e1', 'from' => 'n1', 'to' => 'n2', 'label' => 'default'],
+                        ['id' => 'e2', 'from' => 'n2', 'to' => 'n3', 'label' => 'true'],
+                        ['id' => 'e3', 'from' => 'n2', 'to' => 'n4', 'label' => 'false'],
+                        ['id' => 'e4', 'from' => 'n3', 'to' => 'n5', 'label' => 'default'],
+                        ['id' => 'e5', 'from' => 'n4', 'to' => 'n5', 'label' => 'default'],
+                    ],
+                ],
+            ],
+            [
+                'id'      => 'deal-won',
+                'name' => 'وقتی معامله بسته شد',
+                'trigger' => 'deal.won',
+                'graph'   => [
+                    'nodes' => [
+                        ['id' => 'n1', 'type' => 'start',       'label' => 'شروع',                'x' => 100, 'y' => 100, 'config' => []],
+                        ['id' => 'n2', 'type' => 'set_field',   'label' => 'تغییر مرحلهٔ مخاطب', 'x' => 320, 'y' => 100, 'config' => [
+                            'object' => 'contact', 'id_path' => 'contact.id',
+                            'field'  => 'lifecycle_stage', 'value' => 'customer',
+                        ]],
+                        ['id' => 'n3', 'type' => 'create_task', 'label' => 'وظیفهٔ تحویل',       'x' => 540, 'y' => 100, 'config' => [
+                            'title'    => 'تحویل سفارش به {{ deal.contact_name }}',
+                            'assignee' => 1, 'due' => '+7 days',
+                        ]],
+                        ['id' => 'n4', 'type' => 'notify_admin','label' => 'اطلاع به مدیر',     'x' => 760, 'y' => 100, 'config' => [
+                            'message' => 'معاملهٔ {{ deal.title }} به ارزش {{ deal.amount }} بسته شد.',
+                        ]],
+                        ['id' => 'n5', 'type' => 'end',         'label' => 'پایان',               'x' => 980, 'y' => 100, 'config' => []],
+                    ],
+                    'edges' => [
+                        ['id' => 'e1', 'from' => 'n1', 'to' => 'n2', 'label' => 'default'],
+                        ['id' => 'e2', 'from' => 'n2', 'to' => 'n3', 'label' => 'default'],
+                        ['id' => 'e3', 'from' => 'n3', 'to' => 'n4', 'label' => 'default'],
+                        ['id' => 'e4', 'from' => 'n4', 'to' => 'n5', 'label' => 'default'],
+                    ],
+                ],
+            ],
+        ];
+    }
 }

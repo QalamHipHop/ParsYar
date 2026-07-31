@@ -10,7 +10,7 @@ defined('ABSPATH') || exit;
  */
 final class Installer
 {
-    public const VERSION = '1.2.1';
+    public const VERSION = '1.5.0';
 
     public static function activate(): void
     {

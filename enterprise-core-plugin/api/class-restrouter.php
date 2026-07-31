@@ -970,7 +970,7 @@ final class RestRouter
         ]);
 
         /* ------------------------------------------------------------------ *
-         *  Workflow
+         *  Workflow (نسخهٔ ۱.۵ — Visual Editor)
          * ------------------------------------------------------------------ */
         register_rest_route($ns, '/workflows', [
             [
@@ -983,6 +983,63 @@ final class RestRouter
                 'callback'            => [WorkflowController::class, 'store'],
                 'permission_callback' => [AuthController::class, 'capAdmin'],
             ],
+        ]);
+        register_rest_route($ns, '/workflows/templates', [
+            'methods'             => 'GET',
+            'callback'            => [WorkflowController::class, 'templates'],
+            'permission_callback' => [AuthController::class, 'capAdmin'],
+        ]);
+        register_rest_route($ns, '/workflows/triggers', [
+            'methods'             => 'GET',
+            'callback'            => [WorkflowController::class, 'triggers'],
+            'permission_callback' => [AuthController::class, 'capAdmin'],
+        ]);
+        register_rest_route($ns, '/workflows/node-types', [
+            'methods'             => 'GET',
+            'callback'            => [WorkflowController::class, 'nodeTypes'],
+            'permission_callback' => [AuthController::class, 'capAdmin'],
+        ]);
+        register_rest_route($ns, '/workflows/stats', [
+            'methods'             => 'GET',
+            'callback'            => [WorkflowController::class, 'stats'],
+            'permission_callback' => [AuthController::class, 'capAdmin'],
+        ]);
+        register_rest_route($ns, '/workflows/(?P<id>\d+)', [
+            [
+                'methods'             => 'GET',
+                'callback'            => [WorkflowController::class, 'show'],
+                'permission_callback' => [AuthController::class, 'capAdmin'],
+            ],
+            [
+                'methods'             => 'PUT,PATCH',
+                'callback'            => [WorkflowController::class, 'update'],
+                'permission_callback' => [AuthController::class, 'capAdmin'],
+            ],
+            [
+                'methods'             => 'DELETE',
+                'callback'            => [WorkflowController::class, 'destroy'],
+                'permission_callback' => [AuthController::class, 'capAdmin'],
+            ],
+        ]);
+        register_rest_route($ns, '/workflows/(?P<id>\d+)/duplicate', [
+            'methods'             => 'POST',
+            'callback'            => [WorkflowController::class, 'duplicate'],
+            'permission_callback' => [AuthController::class, 'capAdmin'],
+        ]);
+        register_rest_route($ns, '/workflows/(?P<id>\d+)/run', [
+            'methods'             => 'POST',
+            'callback'            => [WorkflowController::class, 'run'],
+            'permission_callback' => [AuthController::class, 'capAdmin'],
+        ]);
+        register_rest_route($ns, '/workflows/(?P<id>\d+)/runs', [
+            'methods'             => 'GET',
+            'callback'            => [WorkflowController::class, 'runs'],
+            'permission_callback' => [AuthController::class, 'capAdmin'],
+        ]);
+        register_rest_route($ns, '/workflows/(?P<id>\d+)/logs', [
+            'methods'             => 'GET',
+            'callback'            => [WorkflowController::class, 'logs'],
+            'permission_callback' => [AuthController::class, 'capAdmin'],
         ]);
 
         /* ------------------------------------------------------------------ *

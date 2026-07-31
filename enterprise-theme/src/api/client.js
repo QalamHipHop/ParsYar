@@ -54,6 +54,17 @@ export const api = {
 
   workflows:      ()      => request('/workflows'),
   createWorkflow: (b)     => request('/workflows', { method: 'POST', body: b }),
+  workflow:       (id)    => request(`/workflows/${id}`),
+  updateWorkflow: (id, b) => request(`/workflows/${id}`, { method: 'PUT', body: b }),
+  deleteWorkflow: (id)    => request(`/workflows/${id}`, { method: 'DELETE' }),
+  duplicateWorkflow: (id, name) => request(`/workflows/${id}/duplicate`, { method: 'POST', body: { name } }),
+  runWorkflow:    (id, payload) => request(`/workflows/${id}/run`, { method: 'POST', body: payload || {} }),
+  workflowRuns:   (id)    => request(`/workflows/${id}/runs`),
+  workflowLogs:   (id)    => request(`/workflows/${id}/logs`),
+  workflowTemplates: ()   => request('/workflows/templates'),
+  workflowTriggers:   ()   => request('/workflows/triggers'),
+  workflowNodeTypes:  ()   => request('/workflows/node-types'),
+  workflowStats:      ()   => request('/workflows/stats'),
 
   audit:          ()      => request('/audit'),
 };
