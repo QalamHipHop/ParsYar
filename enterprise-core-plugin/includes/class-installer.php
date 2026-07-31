@@ -52,6 +52,9 @@ final class Installer
         // مهاجرت v1.7.0: جدول‌های Customer Portal (PWA)
         self::migratePortalTables();
 
+        // مهاجرت v2.0.0: جدول‌های Multi-tenant (tenants, branches, memberships)
+        self::migrateMultitenantTables();
+
         // نسخه را ذخیره کن
         update_option('enterprise_db_version', self::VERSION);
     }
@@ -284,6 +287,83 @@ final class Installer
             created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
             KEY idx_contact (contact_id),
             KEY idx_type (type)
+        ) {$charset};";
+
+        foreach ($sql as $stmt) {
+            dbDelta($stmt);
+        }
+    }
+
+    /**
+     * مهاجرت جدول‌های Multi-tenant (v2.0.0).
+     *
+     * سه جدول: tenants (شرکت‌ها)، branches (شعب)، memberships (کاربران × شرکت).
+     */
+    private static function migrateMultitenantTables(): void
+    {
+        require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+        global $wpdb;
+        $charset = $wpdb->get_charset_collate();
+        $p = $wpdb->prefix . 'parsyar_';
+
+        $sql = [];
+
+        $sql[] = "CREATE TABLE {$p}tenants (
+            id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            uuid VARCHAR(64) NOT NULL UNIQUE,
+            name VARCHAR(190) NOT NULL,
+            slug VARCHAR(190) NOT NULL UNIQUE,
+            legal_name VARCHAR(190) NULL,
+            national_id VARCHAR(32) NULL,
+            economic_code VARCHAR(64) NULL,
+            logo_url VARCHAR(500) NULL,
+            status VARCHAR(32) NOT NULL DEFAULT 'active',
+            plan VARCHAR(32) NOT NULL DEFAULT 'starter',
+            settings LONGTEXT NULL,
+            branding LONGTEXT NULL,
+            created_by BIGINT UNSIGNED NULL,
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME NULL,
+            KEY idx_status (status),
+            KEY idx_plan (plan),
+            KEY idx_name (name)
+        ) {$charset};";
+
+        $sql[] = "CREATE TABLE {$p}branches (
+            id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            uuid VARCHAR(64) NOT NULL UNIQUE,
+            tenant_id BIGINT UNSIGNED NOT NULL,
+            name VARCHAR(190) NOT NULL,
+            code VARCHAR(64) NULL,
+            parent_id BIGINT UNSIGNED NULL,
+            manager_id BIGINT UNSIGNED NULL,
+            address TEXT NULL,
+            city VARCHAR(64) NULL,
+            province VARCHAR(64) NULL,
+            phone VARCHAR(32) NULL,
+            is_default TINYINT(1) NOT NULL DEFAULT 0,
+            is_active TINYINT(1) NOT NULL DEFAULT 1,
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME NULL,
+            KEY idx_tenant (tenant_id),
+            KEY idx_default (tenant_id, is_default),
+            KEY idx_active (tenant_id, is_active),
+            KEY idx_code (tenant_id, code)
+        ) {$charset};";
+
+        $sql[] = "CREATE TABLE {$p}memberships (
+            id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            user_id BIGINT UNSIGNED NOT NULL,
+            tenant_id BIGINT UNSIGNED NOT NULL,
+            branch_id BIGINT UNSIGNED NULL,
+            role VARCHAR(32) NOT NULL DEFAULT 'member',
+            is_active TINYINT(1) NOT NULL DEFAULT 1,
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME NULL,
+            UNIQUE KEY uk_user_tenant_branch (user_id, tenant_id, branch_id),
+            KEY idx_user (user_id),
+            KEY idx_tenant (tenant_id),
+            KEY idx_role (tenant_id, role)
         ) {$charset};";
 
         foreach ($sql as $stmt) {
@@ -974,7 +1054,53 @@ final class Installer
         \Enterprise\Modules\Accounting\ChartOfAccounts::installDefaults();
         \Enterprise\Modules\Objects\Bootstrap::installSystemObjects();
         self::seedFiscalPeriod();
+        self::seedDefaultTenant();
         update_option('enterprise_seeded', 'yes');
+    }
+
+    /**
+     * ساخت tenant پیش‌فرض در اولین نصب.
+     * در حالت single-tenant نام شرکت از تنظیمات سازمان (wizard) خوانده می‌شود
+     * و در حالت holding/enterprise به‌صورت پیش‌فرض یک ردیف primary ساخته می‌شود.
+     */
+    public static function seedDefaultTenant(): int
+    {
+        if (!class_exists('\\Enterprise\\Modules\\Multitenant\\Tenant')) {
+            return 0;
+        }
+        $existing = \Enterprise\Modules\Multitenant\Tenant::list([], 1, 0, 'id ASC');
+        if (!empty($existing)) {
+            return (int) $existing[0]['id'];
+        }
+        $name = (string) (get_option('parsyar_organization_name') ?: get_option('blogname') ?: 'شرکت اصلی');
+        $id = \Enterprise\Modules\Multitenant\Tenant::create([
+            'name'       => $name,
+            'legal_name' => (string) (get_option('parsyar_organization_legal_name') ?: ''),
+            'national_id'=> (string) (get_option('parsyar_organization_national_id') ?: ''),
+            'plan'       => 'starter',
+            'status'     => 'active',
+        ]);
+        // شعبه پیش‌فرض
+        if (class_exists('\\Enterprise\\Modules\\Multitenant\\Branch')) {
+            \Enterprise\Modules\Multitenant\Branch::create([
+                'tenant_id'  => $id,
+                'name'       => 'دفتر مرکزی',
+                'is_default' => true,
+                'is_active'  => true,
+            ]);
+        }
+        // grant owner role به admin جاری
+        $u = wp_get_current_user();
+        if (!$u || !$u->ID) {
+            $admins = get_users(['role' => 'administrator', 'number' => 1]);
+            if (!empty($admins)) {
+                $u = $admins[0];
+            }
+        }
+        if ($u && $u->ID) {
+            \Enterprise\Modules\Multitenant\Membership::grant((int) $u->ID, $id, 'owner');
+        }
+        return $id;
     }
 
     /**

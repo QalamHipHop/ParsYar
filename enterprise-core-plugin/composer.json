@@ -57,6 +57,8 @@
     "autoload": {
         "psr-4": {
             "Enterprise\\": "includes/",
+            "Enterprise\\Core\\": "includes/Core/",
+            "Enterprise\\Support\\": "includes/support/",
             "Enterprise\\Modules\\": "modules/",
             "Enterprise\\Api\\": "api/",
             "Enterprise\\Admin\\": "admin/",

@@ -37,6 +37,8 @@ final class Bootstrap
         'Enterprise\\Api\\Portal\\'        => 'api/portal/',
         'Enterprise\\Modules\\Mobile\\'    => 'modules/mobile/',
         'Enterprise\\Api\\Mobile\\'        => 'api/mobile/',
+        'Enterprise\\Modules\\Multitenant\\' => 'modules/multitenant/',
+        'Enterprise\\Api\\Multitenant\\'    => 'api/multitenant/',
     ];
 
     private static ?Bootstrap $instance = null;
@@ -123,6 +125,7 @@ final class Bootstrap
         \Enterprise\Modules\Audit\Logger::boot();
         \Enterprise\Modules\Workflow\Repository::boot();
         \Enterprise\Modules\Multitenant\Context::boot();
+        \Enterprise\Modules\Multitenant\Repository::boot();
         \Enterprise\Modules\Portal\PortalModule::boot();
 
         add_action('enterprise_event', [Workflow\Dispatcher::class, 'handle'], 10, 2);

@@ -1114,6 +1114,15 @@ final class RestRouter
         \Enterprise\Api\Portal\PortalController::registerRoutes();
 
         /* ------------------------------------------------------------------ *
+         *  Multi-tenant SaaS (v2.0.0)
+         *  /tenants   /tenants/current   /tenants/switch
+         *  /tenants/{id}/branches
+         *  /tenants/{id}/members
+         *  /me/tenants
+         * ------------------------------------------------------------------ */
+        \Enterprise\Api\Multitenant\MultitenantController::registerRoutes();
+
+        /* ------------------------------------------------------------------ *
          *  Audit
          * ------------------------------------------------------------------ */
         register_rest_route($ns, '/audit', [
