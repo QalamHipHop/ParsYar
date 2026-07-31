@@ -1,71 +1,64 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { api } from '../api/client.js';
+import ResourceTable from '../components/ResourceTable.jsx';
+import ResourceForm from '../components/ResourceForm.jsx';
+import Badge from '../components/Badge.jsx';
+import { formatMoney, formatJalaliShort } from '../lib/format.js';
 
 export default function Employees() {
-  const [rows, setRows]   = useState([]);
-  const [form, setForm]   = useState({
-    national_code: '', full_name: '', position: '', base_salary: 0, hire_date: new Date().toISOString().slice(0,10),
-  });
-  const [payroll, setPayroll] = useState(null);
-
-  async function load() { setRows(await api.employees()); }
-  useEffect(() => { load(); }, []);
-
-  async function submit(e) {
-    e.preventDefault();
-    try { await api.createEmployee(form); } catch (_) {}
-    setForm({ national_code: '', full_name: '', position: '', base_salary: 0, hire_date: new Date().toISOString().slice(0,10) });
-    await load();
-  }
-
-  async function runPayroll() {
-    const r = await api.runPayroll({ period: new Date().toISOString().slice(0,7) });
-    setPayroll(r);
-  }
+  const [open, setOpen] = useState(false);
+  const [edit, setEdit] = useState(null);
+  const fetcher = useCallback(() => api.employees(), []);
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold mb-4">منابع انسانی</h1>
-      <div className="card mb-6 flex items-center justify-between">
-        <div>
-          <h3 className="font-semibold">محاسبه حقوق دوره جاری</h3>
-          <p className="text-sm text-slate-500">محاسبه مالیات + بیمه + صدور سند حسابداری</p>
-        </div>
-        <button onClick={runPayroll} className="btn-primary">اجرای Payroll</button>
-      </div>
-      {payroll && (
-        <div className="card mb-6 bg-emerald-50">
-          <p>دوره: <code>{payroll.period}</code></p>
-          <p>تعداد فیش: {payroll.issued}</p>
-          <p>جمع خالص: {Number(payroll.total_net).toLocaleString()} ریال</p>
-        </div>
-      )}
-      <div className="card mb-6">
-        <form onSubmit={submit} className="grid grid-cols-1 md:grid-cols-6 gap-3">
-          <input className="input" placeholder="کد ملی" value={form.national_code} onChange={e => setForm({ ...form, national_code: e.target.value })} />
-          <input className="input md:col-span-2" placeholder="نام" value={form.full_name} onChange={e => setForm({ ...form, full_name: e.target.value })} />
-          <input className="input" placeholder="سمت" value={form.position} onChange={e => setForm({ ...form, position: e.target.value })} />
-          <input className="input" type="number" placeholder="حقوق پایه" value={form.base_salary} onChange={e => setForm({ ...form, base_salary: +e.target.value })} />
-          <input className="input" type="date" value={form.hire_date} onChange={e => setForm({ ...form, hire_date: e.target.value })} />
-          <button className="btn-primary md:col-span-6">افزودن پرسنل</button>
-        </form>
-      </div>
-      <div className="card overflow-x-auto">
-        <table className="table">
-          <thead><tr><th>کد ملی</th><th>نام</th><th>سمت</th><th>حقوق پایه</th><th>تاریخ استخدام</th></tr></thead>
-          <tbody>
-            {rows.map(r => (
-              <tr key={r.id}>
-                <td><code>{r.national_code}</code></td>
-                <td>{r.full_name}</td>
-                <td>{r.position}</td>
-                <td>{Number(r.base_salary).toLocaleString()}</td>
-                <td>{r.hire_date}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
+    <>
+      <ResourceTable
+        title="پرسنل"
+        subtitle="کارمندان، قراردادها و اطلاعات سازمانی"
+        fetcher={fetcher}
+        searchKeys={['full_name', 'national_id', 'mobile', 'position']}
+        createLabel="+ پرسنل جدید"
+        onCreate={() => { setEdit(null); setOpen(true); }}
+        onEdit={(r) => { setEdit(r); setOpen(true); }}
+        onDelete={async (r) => { await api.del(`/hrm/employees/${r.id}`); }}
+        columns={[
+          { key: 'full_name', label: 'نام', render: r => (
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-full bg-success-50 dark:bg-success-500/10 text-success-600 dark:text-success-400 grid place-items-center text-[11px] font-bold">{(r.full_name || r.name || '?').slice(0, 1)}</div>
+              <div className="min-w-0">
+                <div className="font-semibold truncate">{r.full_name || r.name || '—'}</div>
+                <div className="text-[11px] text-ink-500 dark:text-ink-400 truncate">{r.position || ''}</div>
+              </div>
+            </div>
+          ) },
+          { key: 'national_id', label: 'کد ملی', render: r => <span className="font-mono text-xs ltr-num">{r.national_id || '—'}</span> },
+          { key: 'mobile', label: 'موبایل', render: r => <span className="ltr-num font-mono text-xs">{r.mobile || '—'}</span> },
+          { key: 'department', label: 'دپارتمان', render: r => r.department || '—' },
+          { key: 'salary', label: 'حقوق پایه', align: 'left', render: r => r.salary ? <span className="font-mono tabular-nums">{formatMoney(r.salary, 'IRT')}</span> : '—' },
+          { key: 'status', label: 'وضعیت', render: r => <Badge variant={r.status === 'active' ? 'success' : 'default'}>{r.status || 'active'}</Badge> },
+        ]}
+      />
+      <ResourceForm
+        open={open}
+        onClose={() => setOpen(false)}
+        title={edit ? `ویرایش پرسنل #${edit.id}` : 'پرسنل جدید'}
+        initial={edit || {}}
+        fields={[
+          { key: 'full_name',  label: 'نام کامل',   type: 'text',     required: true },
+          { key: 'national_id',label: 'کد ملی',     type: 'text' },
+          { key: 'mobile',     label: 'موبایل',     type: 'text' },
+          { key: 'email',      label: 'ایمیل',      type: 'email' },
+          { key: 'position',   label: 'سمت',       type: 'text' },
+          { key: 'department', label: 'دپارتمان',   type: 'text' },
+          { key: 'hire_date',  label: 'تاریخ استخدام', type: 'date' },
+          { key: 'salary',     label: 'حقوق پایه',  type: 'number', step: 1 },
+          { key: 'status',     label: 'وضعیت',      type: 'select', options: ['active','inactive','suspended'] },
+        ]}
+        onSubmit={async (v) => {
+          if (edit) await api.put(`/hrm/employees/${edit.id}`, v);
+          else      await api.createEmployee(v);
+        }}
+      />
+    </>
   );
 }

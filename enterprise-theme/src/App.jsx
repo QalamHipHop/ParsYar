@@ -1,69 +1,87 @@
-import React from 'react';
-import { Routes, Route, NavLink, Navigate } from 'react-router-dom';
-import Dashboard from './pages/Dashboard.jsx';
-import ObjectsList from './pages/ObjectsList.jsx';
-import RecordsList from './pages/RecordsList.jsx';
-import Accounting from './pages/Accounting.jsx';
-import Leads from './pages/Leads.jsx';
-import Products from './pages/Products.jsx';
-import Invoices from './pages/Invoices.jsx';
-import Employees from './pages/Employees.jsx';
-import Workflows from './pages/Workflows.jsx';
-import Audit from './pages/Audit.jsx';
+import React, { Suspense, lazy } from 'react';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import Sidebar from './components/Sidebar.jsx';
+import Topbar, { CommandPalette } from './components/Topbar.jsx';
+import ToastStack from './components/ToastStack.jsx';
+import { useUI } from './store';
 
-const nav = [
-  { to: '/',                label: 'داشبورد' },
-  { to: '/objects',         label: 'اشیاء' },
-  { to: '/records/account', label: 'حساب‌ها' },
-  { to: '/records/opportunity', label: 'فرصت‌ها' },
-  { to: '/leads',           label: 'سرنخ‌ها' },
-  { to: '/products',        label: 'انبار' },
-  { to: '/invoices',        label: 'فاکتورها' },
-  { to: '/employees',       label: 'پرسنل' },
-  { to: '/accounting',      label: 'حسابداری' },
-  { to: '/workflows',       label: 'گردش کار' },
-  { to: '/audit',           label: 'حسابرسی' },
-];
+// Lazy pages — keeps initial bundle small
+const Dashboard       = lazy(() => import('./pages/Dashboard.jsx'));
+const ObjectsList     = lazy(() => import('./pages/ObjectsList.jsx'));
+const RecordsList     = lazy(() => import('./pages/RecordsList.jsx'));
+const ObjectBuilder   = lazy(() => import('./pages/ObjectBuilder.jsx'));
+const Leads           = lazy(() => import('./pages/Leads.jsx'));
+const Contacts        = lazy(() => import('./pages/Contacts.jsx'));
+const Deals           = lazy(() => import('./pages/Deals.jsx'));
+const Products        = lazy(() => import('./pages/Products.jsx'));
+const Invoices        = lazy(() => import('./pages/Invoices.jsx'));
+const Orders          = lazy(() => import('./pages/Orders.jsx'));
+const Payments        = lazy(() => import('./pages/Payments.jsx'));
+const Employees       = lazy(() => import('./pages/Employees.jsx'));
+const Accounting      = lazy(() => import('./pages/Accounting.jsx'));
+const Workflows       = lazy(() => import('./pages/Workflows.jsx'));
+const Reports         = lazy(() => import('./pages/Reports.jsx'));
+const Audit           = lazy(() => import('./pages/Audit.jsx'));
+const Settings        = lazy(() => import('./pages/Settings.jsx'));
+const Notifications   = lazy(() => import('./pages/Notifications.jsx'));
+const Profile         = lazy(() => import('./pages/Profile.jsx'));
+const WizardLauncher  = lazy(() => import('./pages/WizardLauncher.jsx'));
+const Tenants         = lazy(() => import('./pages/Tenants.jsx'));
+
+function PageLoader() {
+  return (
+    <div className="space-y-4 animate-fade-in">
+      <div className="flex items-center gap-3 mb-2">
+        <div className="skeleton h-8 w-48 rounded-lg" />
+        <div className="skeleton h-8 w-24 rounded-lg ms-auto" />
+      </div>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        {Array.from({ length: 4 }).map((_, i) => <div key={i} className="skeleton h-24 rounded-2xl" />)}
+      </div>
+      <div className="skeleton h-72 rounded-2xl" />
+    </div>
+  );
+}
 
 export default function App() {
+  const { sidebarOpen } = useUI();
   return (
-    <div className="min-h-screen flex" dir="rtl">
-      <aside className="w-64 bg-brand-900 text-white p-4 flex flex-col">
-        <div className="text-2xl font-bold mb-1">ParsYar</div>
-        <div className="text-xs text-brand-100 mb-6">Enterprise Platform</div>
-        <nav className="space-y-1 flex-1">
-          {nav.map(n => (
-            <NavLink
-              key={n.to}
-              to={n.to}
-              end={n.to === '/'}
-              className={({ isActive }) =>
-                `block px-3 py-2 rounded-lg text-sm ${
-                  isActive ? 'bg-brand-700 text-white' : 'text-brand-100 hover:bg-brand-700/60'
-                }`
-              }
-            >
-              {n.label}
-            </NavLink>
-          ))}
-        </nav>
-        <div className="text-xs text-brand-200/70 mt-4">v1.0.0</div>
-      </aside>
-      <main className="flex-1 p-8 overflow-auto">
-        <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/objects" element={<ObjectsList />} />
-          <Route path="/records/:api" element={<RecordsList />} />
-          <Route path="/leads" element={<Leads />} />
-          <Route path="/products" element={<Products />} />
-          <Route path="/invoices" element={<Invoices />} />
-          <Route path="/employees" element={<Employees />} />
-          <Route path="/accounting" element={<Accounting />} />
-          <Route path="/workflows" element={<Workflows />} />
-          <Route path="/audit" element={<Audit />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </main>
+    <div className="min-h-screen flex bg-ink-50 dark:bg-ink-950">
+      <Sidebar />
+      <div className="flex-1 flex flex-col min-w-0">
+        <Topbar />
+        <main className="flex-1 px-4 md:px-6 py-6 max-w-[1600px] w-full mx-auto">
+          <Suspense fallback={<PageLoader />}>
+            <Routes>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/objects" element={<ObjectsList />} />
+              <Route path="/objects/new" element={<ObjectBuilder />} />
+              <Route path="/objects/:api/edit" element={<ObjectBuilder />} />
+              <Route path="/records/:api" element={<RecordsList />} />
+              <Route path="/leads" element={<Leads />} />
+              <Route path="/contacts" element={<Contacts />} />
+              <Route path="/deals" element={<Deals />} />
+              <Route path="/products" element={<Products />} />
+              <Route path="/invoices" element={<Invoices />} />
+              <Route path="/orders" element={<Orders />} />
+              <Route path="/payments" element={<Payments />} />
+              <Route path="/employees" element={<Employees />} />
+              <Route path="/accounting" element={<Accounting />} />
+              <Route path="/workflows" element={<Workflows />} />
+              <Route path="/reports" element={<Reports />} />
+              <Route path="/audit" element={<Audit />} />
+              <Route path="/settings" element={<Settings />} />
+              <Route path="/notifications" element={<Notifications />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/wizard" element={<WizardLauncher />} />
+              <Route path="/tenants" element={<Tenants />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </Suspense>
+        </main>
+      </div>
+      <CommandPalette />
+      <ToastStack />
     </div>
   );
 }
