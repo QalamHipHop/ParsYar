@@ -1043,6 +1043,69 @@ final class RestRouter
         ]);
 
         /* ------------------------------------------------------------------ *
+         *  Reports (نسخهٔ ۱.۶ — Custom Report Builder)
+         * ------------------------------------------------------------------ */
+        register_rest_route($ns, '/reports', [
+            [
+                'methods'             => 'GET',
+                'callback'            => [ReportsController::class, 'index'],
+                'permission_callback' => [AuthController::class, 'capRecords'],
+            ],
+            [
+                'methods'             => 'POST',
+                'callback'            => [ReportsController::class, 'store'],
+                'permission_callback' => [AuthController::class, 'capRecords'],
+            ],
+        ]);
+        register_rest_route($ns, '/reports/preview', [
+            'methods'             => 'POST',
+            'callback'            => [ReportsController::class, 'preview'],
+            'permission_callback' => [AuthController::class, 'capRecords'],
+        ]);
+        register_rest_route($ns, '/reports/sources', [
+            'methods'             => 'GET',
+            'callback'            => [ReportsController::class, 'sources'],
+            'permission_callback' => [AuthController::class, 'capRecords'],
+        ]);
+        register_rest_route($ns, '/reports/meta', [
+            'methods'             => 'GET',
+            'callback'            => [ReportsController::class, 'meta'],
+            'permission_callback' => [AuthController::class, 'capRecords'],
+        ]);
+        register_rest_route($ns, '/reports/templates', [
+            'methods'             => 'GET',
+            'callback'            => [ReportsController::class, 'templates'],
+            'permission_callback' => [AuthController::class, 'capRecords'],
+        ]);
+        register_rest_route($ns, '/reports/(?P<id>\d+)', [
+            [
+                'methods'             => 'GET',
+                'callback'            => [ReportsController::class, 'show'],
+                'permission_callback' => [AuthController::class, 'capRecords'],
+            ],
+            [
+                'methods'             => 'PUT,PATCH',
+                'callback'            => [ReportsController::class, 'update'],
+                'permission_callback' => [AuthController::class, 'capRecords'],
+            ],
+            [
+                'methods'             => 'DELETE',
+                'callback'            => [ReportsController::class, 'destroy'],
+                'permission_callback' => [AuthController::class, 'capAdmin'],
+            ],
+        ]);
+        register_rest_route($ns, '/reports/(?P<id>\d+)/run', [
+            'methods'             => 'GET',
+            'callback'            => [ReportsController::class, 'run'],
+            'permission_callback' => [AuthController::class, 'capRecords'],
+        ]);
+        register_rest_route($ns, '/reports/(?P<id>\d+)/export.csv', [
+            'methods'             => 'GET',
+            'callback'            => [ReportsController::class, 'exportCsv'],
+            'permission_callback' => [AuthController::class, 'capRecords'],
+        ]);
+
+        /* ------------------------------------------------------------------ *
          *  Audit
          * ------------------------------------------------------------------ */
         register_rest_route($ns, '/audit', [

@@ -66,5 +66,16 @@ export const api = {
   workflowNodeTypes:  ()   => request('/workflows/node-types'),
   workflowStats:      ()   => request('/workflows/stats'),
 
+  reports:           ()      => request('/reports'),
+  report:            (id)    => request(`/reports/${id}`),
+  createReport:      (b)     => request('/reports', { method: 'POST', body: b }),
+  updateReport:      (id, b) => request(`/reports/${id}`, { method: 'PUT', body: b }),
+  deleteReport:      (id)    => request(`/reports/${id}`, { method: 'DELETE' }),
+  runReport:         (id)    => request(`/reports/${id}/run`),
+  previewReport:     (b)     => request('/reports/preview', { method: 'POST', body: b }),
+  reportSources:     ()      => request('/reports/sources'),
+  reportMeta:        ()      => request('/reports/meta'),
+  reportTemplates:   ()      => request('/reports/templates'),
+
   audit:          ()      => request('/audit'),
 };

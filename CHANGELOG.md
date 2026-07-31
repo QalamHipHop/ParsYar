@@ -4,6 +4,39 @@
 قالب بر اساس [Keep a Changelog](https://keepachangelog.com/fa/1.1.0/) و
 این پروژه از [Semantic Versioning](https://semver.org/lang/fa/) پیروی می‌کند.
 
+## [1.6.0] - 2026-07-31
+
+### افزوده (Added)
+
+- **Custom Report Builder (ReportService)**: ساخت گزارش‌های سفارشی بدون کدنویسی.
+  - ۱۱ منبع داده: contacts, organizations, leads, deals, products,
+    invoices, payments, employees, attendance, leaves, journal.
+  - فیلتر پویا با ۱۰ اپراتور (`==`, `!=`, `>`, `>=`, `<`, `<=`,
+    `contains`, `in`, `empty`, `not_empty`).
+  - Group By بر اساس ستون‌های دلخواه.
+  - Aggregations: count, sum, avg, min, max.
+  - مرتب‌سازی + limit (۱ تا ۵۰۰۰).
+  - ۵ نوع نمودار: table, bar, line, pie, area.
+  - اشتراک‌گذاری گزارش (`is_public`).
+  - خروجی CSV با BOM فارسی.
+- **۴ قالب آماده**: مخاطبان به تفکیک شهر، معاملات بسته‌شده بر اساس ماه،
+  محصولات پرفروش (top-10)، هشدار موجودی کم.
+- **Reports REST API** (۹ اندپوینت):
+  - `GET /reports`, `GET/POST /reports`, `PUT/DELETE /reports/{id}`
+  - `GET /reports/{id}/run`, `GET /reports/{id}/export.csv`
+  - `POST /reports/preview` (اجرای بدون ذخیره)
+  - `GET /reports/sources`, `/reports/meta`, `/reports/templates`
+- **جدول `wp_parsyar_reports`**: ذخیرهٔ گزارش‌ها با `config_json`.
+- **Frontend (React)**: صفحهٔ `Reports.jsx` با ادیتور کامل
+  (form برای filters, group_by, metrics)، پیش‌نمایش زنده، جدول نتایج،
+  خروجی CSV از لیست و ادیتور، بارگذاری قالب.
+- **۷ تست واحد** برای ReportService در `tests/unit/Modules/Reports/`.
+
+### تغییر (Changed)
+
+- **Installer VERSION** از `1.5.0` به `1.6.0` ارتقا یافت.
+- **API client**: متدهای reports اضافه شد.
+
 ## [1.5.0] - 2026-07-31
 
 ### افزوده (Added)

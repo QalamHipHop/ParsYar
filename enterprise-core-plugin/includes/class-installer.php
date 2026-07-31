@@ -10,7 +10,7 @@ defined('ABSPATH') || exit;
  */
 final class Installer
 {
-    public const VERSION = '1.5.0';
+    public const VERSION = '1.6.0';
 
     public static function activate(): void
     {
@@ -45,6 +45,9 @@ final class Installer
 
         // اگه جدول accounts خالیه (نصب قدیمی‌ای که seed شکست خورده)، seed کن
         self::seedAccountsIfEmpty();
+
+        // مهاجرت v1.6.0: جدول parsyar_reports (Custom Report Builder)
+        self::migrateReportsTable();
 
         // نسخه را ذخیره کن
         update_option('enterprise_db_version', self::VERSION);
@@ -140,6 +143,34 @@ final class Installer
         if (!$col) {
             $wpdb->query("ALTER TABLE {$table} ADD COLUMN tax_invoice_uid VARCHAR(64) NULL AFTER uuid, ADD UNIQUE KEY uniq_tax_uid (tax_invoice_uid)");
         }
+    }
+
+    /**
+     * مهاجرت v1.6.0: ساخت جدول `wp_parsyar_reports` (Custom Report Builder).
+     * ذخیرهٔ گزارش‌های تعریف‌شده توسط کاربر (data source + filters + group_by + metrics + chart).
+     */
+    private static function migrateReportsTable(): void
+    {
+        require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+        global $wpdb;
+        $charset = $wpdb->get_charset_collate();
+        $t = $wpdb->prefix . 'parsyar_reports';
+
+        $sql = "CREATE TABLE {$t} (
+            id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            name VARCHAR(160) NOT NULL,
+            description TEXT NULL,
+            data_source VARCHAR(64) NOT NULL,
+            config_json LONGTEXT NOT NULL,
+            chart_type VARCHAR(32) NULL,
+            is_public TINYINT(1) NOT NULL DEFAULT 0,
+            created_by BIGINT UNSIGNED NULL,
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME NULL,
+            KEY idx_data_source (data_source),
+            KEY idx_public (is_public)
+        ) {$charset};";
+        dbDelta($sql);
     }
 
     /**
