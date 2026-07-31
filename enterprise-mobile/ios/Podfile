@@ -1,0 +1,47 @@
+require_relative '../node_modules/react-native/scripts/react_native_pods'
+require_relative '../node_modules/@react-native-community/cli-platform-ios/native_modules'
+
+platform :ios, '15.1'
+prepare_react_native_project!
+
+linkage = ENV['USE_FRAMEWORKS']
+if linkage != nil
+  Pod::UI.puts "Configuring Pod with #{linkage}ally linked Frameworks".green
+  use_frameworks! :linkage => linkage.to_sym
+end
+
+target 'ParsYarEnterprise' do
+  config = use_native_modules!
+
+  use_react_native!(
+    :path => config[:reactNativePath],
+    :hermes_enabled => true,
+    :fabric_enabled => true,
+    :app_path => "#{Pod::Config.instance.installation_root}/.."
+  )
+
+  # React Native push notification (FCM + APNs bridge)
+  pod 'RNCPushNotificationIOS', :path => '../node_modules/@react-native-community/push-notification-ios'
+
+  # Required for react-native-vector-icons font copying
+  pod 'RNVectorIcons', :path => '../node_modules/react-native-vector-icons'
+
+  target 'ParsYarEnterpriseTests' do
+    inherit! :complete
+  end
+
+  post_install do |installer|
+    react_native_post_install(installer)
+    __apply_Xcode_15_patch(installer)
+  end
+end
+
+def __apply_Xcode_15_patch(installer)
+  # Workaround for Xcode 15 resource bundle signing
+  installer.pods_project.targets.each do |t|
+    t.build_configurations.each do |bc|
+      bc.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.1'
+      bc.build_settings['EXCLUDED_ARCHS[sdk=iphonesimulator*]'] = 'arm64'
+    end
+  end
+end

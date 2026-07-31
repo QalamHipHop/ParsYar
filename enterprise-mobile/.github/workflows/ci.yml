@@ -1,0 +1,32 @@
+name: mobile-ci
+
+on:
+  push:
+    paths:
+      - 'enterprise-mobile/**'
+  pull_request:
+    paths:
+      - 'enterprise-mobile/**'
+
+jobs:
+  test:
+    name: Test (Jest + TypeScript)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: enterprise-mobile
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: enterprise-mobile/package-lock.json
+      - run: npm ci || npm install
+      - run: npm run typecheck
+      - run: npm test -- --ci --coverage
+      - name: Upload coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: mobile-coverage
+          path: enterprise-mobile/coverage/

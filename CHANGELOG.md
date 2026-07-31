@@ -35,6 +35,36 @@
 - منوی ادمین: زیرمنوی «Customer Portal» اضافه شد
 - `enterprise_daily` cron event برای prune روزانه ثبت می‌شود
 
+## [1.8.0] - 2026-07-31
+
+### افزوده (Added)
+
+- **اپلیکیشن موبایل (React Native)** — فاز ۱.۸.۰:
+  - پروژهٔ `enterprise-mobile/` با React Native 0.75 + TypeScript 5.5 + Redux Toolkit + i18next
+  - ۹ صفحه: Login, Verify, Dashboard, Invoices, Orders, Payments, Tickets (+NewTicket), Profile, Settings
+  - **Magic Link** با همان endpointهای بک‌اند پورتال: `/auth/magic-link`, `/auth/verify`, `/auth/refresh`
+  - **JWT rotation** خودکار روی 401 با Axios interceptor و refresh-token واحد
+  - **AsyncStorage** برای ذخیرهٔ token، baseUrl، profile
+  - **Biometric** (TouchID/FaceID/Fingerprint) با `react-native-biometrics` (opt-in)
+  - **Push** با `react-native-push-notification` (FCM + APNs)
+  - **Deep linking**: `parsyar://verify?token=…` + Universal Links `https://yourdomain.com/portal/verify?token=…`
+  - **iOS Info.plist** با ATS (HTTPS only)، FaceID usage description، deep link registration
+  - **AndroidManifest.xml** با INTERNET، USE_BIOMETRIC، POST_NOTIFICATIONS، deep link filters
+  - **Network security config** (cleartext فقط برای localhost dev)
+  - **Podfile** با Fabric/Hermes، vector icons، push notification pod
+  - **build.gradle** با ProGuard، Hermes، minSdk 24
+  - **GitHub Actions CI** (`mobile-ci.yml`): typecheck + Jest + coverage
+  - **Jest tests** برای `lib/api` (formatCurrency، formatDateJalali، setBaseUrl، requestMagicLink، verifyMagicLink)
+  - **i18n** با fa-IR پیش‌فرض + تشخیص خودکار locale دستگاه از `react-native-localize`
+  - **Component library**: Card, Button, Input, StatusBadge, Empty, Chip
+  - **Theme tokens** آینهٔ PWA (white/black/glassmorphism)
+  - **Redux store** با slices: auth (bootstrap, setBaseUrl, requestMagic, verify, logout) + ui (online, push, biometric, locale)
+  - **README** کامل با deep linking، security، roadmap
+
+### تغییر (Changed)
+
+- `enterprise-core.php` PSR-4 namespaces: `Enterprise\Modules\Mobile\`, `Enterprise\Api\Mobile\` اضافه شد (برای آینده)
+
 تمام تغییرات مهم این پروژه در این فایل ثبت می‌شود.
 قالب بر اساس [Keep a Changelog](https://keepachangelog.com/fa/1.1.0/) و
 این پروژه از [Semantic Versioning](https://semver.org/lang/fa/) پیروی می‌کند.
