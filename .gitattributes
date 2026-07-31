@@ -1,0 +1,26 @@
+* text=auto eol=lf
+
+# Binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.webp binary
+*.pdf binary
+*.zip binary
+*.tar.gz binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary
+
+# Linguist overrides
+*.php linguist-language=PHP
+*.jsx linguist-language=JavaScript
+*.module linguist-language=PHP
+
+# Export
+/.github export-ignore
+/.gitignore export-ignore
+/.editorconfig export-ignore
