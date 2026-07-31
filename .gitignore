@@ -39,3 +39,7 @@ keys/
 *.pem
 *.key
 *.p12
+# Portal PWA
+enterprise-theme/portal-pwa/node_modules/
+enterprise-theme/portal-pwa/dist/
+enterprise-theme/portal-pwa/.vite/

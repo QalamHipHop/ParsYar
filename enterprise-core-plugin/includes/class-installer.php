@@ -10,7 +10,7 @@ defined('ABSPATH') || exit;
  */
 final class Installer
 {
-    public const VERSION = '1.6.0';
+    public const VERSION = '1.7.0';
 
     public static function activate(): void
     {
@@ -48,6 +48,9 @@ final class Installer
 
         // مهاجرت v1.6.0: جدول parsyar_reports (Custom Report Builder)
         self::migrateReportsTable();
+
+        // مهاجرت v1.7.0: جدول‌های Customer Portal (PWA)
+        self::migratePortalTables();
 
         // نسخه را ذخیره کن
         update_option('enterprise_db_version', self::VERSION);
@@ -171,6 +174,121 @@ final class Installer
             KEY idx_public (is_public)
         ) {$charset};";
         dbDelta($sql);
+    }
+
+    /**
+     * مهاجرت v1.7.0: ساخت ۶ جدول Customer Portal (PWA).
+     * - portal_tokens: magic link tokens (hashed, single-use, TTL)
+     * - portal_sessions: JWT sessions (jti, refresh, device, exp)
+     * - portal_tickets: تیکت‌های مشتریان
+     * - quote_requests: درخواست‌های استعلام قیمت
+     * - push_subscriptions: WebPush endpoints
+     * - portal_events: client telemetry
+     */
+    private static function migratePortalTables(): void
+    {
+        require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+        global $wpdb;
+        $charset = $wpdb->get_charset_collate();
+        $p = $wpdb->prefix . 'parsyar_';
+
+        $sql = [];
+        $sql[] = "CREATE TABLE {$p}portal_tokens (
+            id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            contact_id BIGINT UNSIGNED NULL,
+            token_hash VARCHAR(255) NOT NULL,
+            email VARCHAR(190) NULL,
+            device_label VARCHAR(128) NULL,
+            expires_at DATETIME NOT NULL,
+            consumed TINYINT(1) NOT NULL DEFAULT 0,
+            consumed_at DATETIME NULL,
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            KEY idx_email (email),
+            KEY idx_contact (contact_id),
+            KEY idx_expires (expires_at)
+        ) {$charset};";
+
+        $sql[] = "CREATE TABLE {$p}portal_sessions (
+            id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            contact_id BIGINT UNSIGNED NOT NULL,
+            jti VARCHAR(64) NOT NULL UNIQUE,
+            refresh_hash VARCHAR(255) NOT NULL,
+            user_agent VARCHAR(255) NULL,
+            access_exp DATETIME NOT NULL,
+            refresh_exp DATETIME NOT NULL,
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            last_seen_at DATETIME NULL,
+            KEY idx_contact (contact_id),
+            KEY idx_access_exp (access_exp),
+            KEY idx_refresh_exp (refresh_exp)
+        ) {$charset};";
+
+        $sql[] = "CREATE TABLE {$p}portal_tickets (
+            id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            uuid VARCHAR(64) NOT NULL UNIQUE,
+            contact_id BIGINT UNSIGNED NOT NULL,
+            subject VARCHAR(200) NOT NULL,
+            body LONGTEXT NOT NULL,
+            category VARCHAR(32) NOT NULL DEFAULT 'other',
+            priority VARCHAR(16) NOT NULL DEFAULT 'normal',
+            status VARCHAR(32) NOT NULL DEFAULT 'open',
+            attachments LONGTEXT NULL,
+            customer_reply LONGTEXT NULL,
+            customer_replied_at DATETIME NULL,
+            staff_reply LONGTEXT NULL,
+            staff_replied_at DATETIME NULL,
+            assigned_to BIGINT UNSIGNED NULL,
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME NULL,
+            KEY idx_contact (contact_id),
+            KEY idx_status (status),
+            KEY idx_priority (priority),
+            KEY idx_category (category)
+        ) {$charset};";
+
+        $sql[] = "CREATE TABLE {$p}quote_requests (
+            id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            uuid VARCHAR(64) NOT NULL UNIQUE,
+            contact_id BIGINT UNSIGNED NOT NULL,
+            notes LONGTEXT NOT NULL,
+            items_json LONGTEXT NULL,
+            status VARCHAR(32) NOT NULL DEFAULT 'pending',
+            converted_quote_id BIGINT UNSIGNED NULL,
+            staff_notes LONGTEXT NULL,
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME NULL,
+            KEY idx_contact (contact_id),
+            KEY idx_status (status)
+        ) {$charset};";
+
+        $sql[] = "CREATE TABLE {$p}push_subscriptions (
+            id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            contact_id BIGINT UNSIGNED NOT NULL,
+            endpoint TEXT NOT NULL,
+            p256dh VARCHAR(255) NOT NULL,
+            auth VARCHAR(128) NOT NULL,
+            user_agent VARCHAR(255) NULL,
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME NULL,
+            UNIQUE KEY uk_endpoint (endpoint(191)),
+            KEY idx_contact (contact_id)
+        ) {$charset};";
+
+        $sql[] = "CREATE TABLE {$p}portal_events (
+            id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            event_id VARCHAR(64) NOT NULL UNIQUE,
+            contact_id BIGINT UNSIGNED NOT NULL,
+            type VARCHAR(64) NOT NULL,
+            payload LONGTEXT NULL,
+            client_ts VARCHAR(64) NULL,
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            KEY idx_contact (contact_id),
+            KEY idx_type (type)
+        ) {$charset};";
+
+        foreach ($sql as $stmt) {
+            dbDelta($stmt);
+        }
     }
 
     /**

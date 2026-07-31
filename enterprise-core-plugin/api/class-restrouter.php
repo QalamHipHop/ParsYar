@@ -1106,6 +1106,14 @@ final class RestRouter
         ]);
 
         /* ------------------------------------------------------------------ *
+         *  Customer Portal (PWA) — v1.7.0
+         *  /portal/auth/*  /portal/me  /portal/invoices  /portal/orders
+         *  /portal/payments  /portal/tickets  /portal/quotes  /portal/push
+         *  /portal/portal-event  /portal/notifications
+         * ------------------------------------------------------------------ */
+        \Enterprise\Api\Portal\PortalController::registerRoutes();
+
+        /* ------------------------------------------------------------------ *
          *  Audit
          * ------------------------------------------------------------------ */
         register_rest_route($ns, '/audit', [

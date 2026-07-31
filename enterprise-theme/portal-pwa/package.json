@@ -1,0 +1,36 @@
+{
+  "name": "@parsyar/portal-pwa",
+  "version": "1.7.0",
+  "private": true,
+  "type": "module",
+  "description": "ParsYar Customer Portal — Progressive Web App (fa-IR first)",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview --port 4173",
+    "lint": "eslint src --ext ts,tsx",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.26.2",
+    "i18next": "^23.15.1",
+    "react-i18next": "^15.0.2",
+    "idb": "^8.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.5",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.3.1",
+    "typescript": "^5.5.4",
+    "vite": "^5.4.6",
+    "vite-plugin-pwa": "^0.20.5",
+    "workbox-window": "^7.1.0",
+    "vitest": "^2.1.1",
+    "@testing-library/react": "^16.0.1",
+    "tailwindcss": "^3.4.10",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.45"
+  }
+}

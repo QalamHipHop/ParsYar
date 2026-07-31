@@ -1,0 +1,28 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html, body, #root { height: 100%; }
+  body { font-family: 'Vazirmatn', 'IRANSansX', Tahoma, system-ui, sans-serif; }
+  :root { color-scheme: light; }
+  [dir="rtl"] .flip-x { transform: scaleX(-1); }
+}
+
+@layer components {
+  .btn { @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors; }
+  .btn-primary { @apply btn bg-brand-600 text-white hover:bg-brand-700 disabled:opacity-50; }
+  .btn-ghost { @apply btn text-slate-700 hover:bg-slate-100; }
+  .card { @apply rounded-2xl bg-white p-4 shadow-sm border border-slate-200; }
+  .input { @apply w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500; }
+  .label { @apply block text-sm font-medium text-slate-700 mb-1; }
+  .badge { @apply inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium; }
+  .badge-ok { @apply badge bg-emerald-100 text-emerald-800; }
+  .badge-warn { @apply badge bg-amber-100 text-amber-800; }
+  .badge-err { @apply badge bg-rose-100 text-rose-800; }
+  .badge-neutral { @apply badge bg-slate-100 text-slate-700; }
+}
+
+/* انیمیشن ساده برای install banner */
+@keyframes slide-up { from { transform: translateY(100%); } to { transform: translateY(0); } }
+.slide-up { animation: slide-up 0.3s ease-out; }
