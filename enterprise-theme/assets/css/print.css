@@ -1,0 +1,75 @@
+/*
+ * ParsYar — Print Stylesheet
+ */
+
+@media print {
+    *,
+    *::before,
+    *::after {
+        background: transparent !important;
+        color: #000 !important;
+        box-shadow: none !important;
+        text-shadow: none !important;
+    }
+
+    html { font-size: 11pt; }
+    body { font-family: 'Vazirmatn', 'IRANSansX', Georgia, serif; line-height: 1.5; }
+
+    h1, h2, h3, h4 { page-break-after: avoid; }
+    h1 { font-size: 22pt; }
+    h2 { font-size: 18pt; }
+    h3 { font-size: 14pt; }
+
+    a[href]::after {
+        content: " (" attr(href) ")";
+        font-size: 90%;
+        color: #555;
+    }
+
+    abbr[title]::after { content: " (" attr(title) ")"; }
+
+    pre, blockquote {
+        border: 1px solid #999;
+        page-break-inside: avoid;
+        padding: 8pt 12pt;
+    }
+
+    img { max-width: 100% !important; }
+
+    thead { display: table-header-group; }
+    tr, img { page-break-inside: avoid; }
+
+    .p-topbar,
+    .p-rail,
+    .p-rail-r,
+    .p-rail-backdrop,
+    .p-cmd,
+    .p-modal-backdrop,
+    .p-toast-stack,
+    .p-btn,
+    .p-subbar,
+    .p-page__actions,
+    nav,
+    aside,
+    footer { display: none !important; }
+
+    .p-app,
+    .p-page {
+        display: block !important;
+        grid-template-columns: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        max-width: none !important;
+    }
+
+    .p-page__title { font-size: 24pt; }
+
+    .p-table {
+        font-size: 9pt;
+    }
+
+    .p-table thead th {
+        background: #eee !important;
+        color: #000 !important;
+    }
+}

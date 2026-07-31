@@ -1,0 +1,13 @@
+/*
+ * ParsYar — Main Stylesheet
+ * Aggregates all partials in correct order.
+ *
+ * Order: tokens → base → components → layout
+ * Optional: rtl (loaded separately by functions.php when is_rtl)
+ * Optional: print (loaded separately with media="print")
+ */
+
+@import url("tokens.css");
+@import url("base.css");
+@import url("components.css");
+@import url("layout.css");

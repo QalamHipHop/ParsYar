@@ -1,0 +1,54 @@
+/*
+ * ParsYar — RTL Overrides
+ * Activated only when [dir="rtl"] is set on <html>.
+ */
+
+[dir="rtl"] {
+    /* Mirror logical properties where they don't auto-mirror */
+    text-align: start;
+}
+
+[dir="rtl"] body {
+    font-feature-settings: "ss01", "ss02", "calt";
+}
+
+/* Persian numerals preferred when available */
+[dir="rtl"] .p-num,
+[dir="rtl"] time,
+[dir="rtl"] .p-amount {
+    font-feature-settings: "ss01";
+}
+
+/* LTR inside RTL where appropriate (e.g. phone, email) */
+.p-ltr-inline { direction: ltr; unicode-bidi: embed; display: inline-block; }
+
+/* Flip certain icons that imply direction */
+[dir="rtl"] .p-icon-mirror { transform: scaleX(-1); }
+
+/* Breadcrumb separator in RTL */
+[dir="rtl"] .p-page__breadcrumbs li + li::before { content: "/"; }
+
+/* Tabs in RTL: keep underline on the same logical side */
+[dir="rtl"] .p-tab { text-align: start; }
+
+/* Sidebar active indicator on the right */
+[dir="rtl"] .p-rail__item.is-active::before {
+    inset-inline-start: auto;
+    inset-inline-end: 0;
+    border-radius: var(--p-r-sm) 0 0 var(--p-r-sm);
+}
+
+/* Form alignment */
+[dir="rtl"] .p-field__label { text-align: start; }
+
+/* Charts and numeric tables: keep LTR for alignment */
+[dir="rtl"] .p-table .p-num,
+[dir="rtl"] .p-table .p-amount {
+    direction: ltr;
+    text-align: end;
+}
+
+/* Persian-friendly: extra letter-spacing on display headings for breathing room */
+[dir="rtl"] h1, [dir="rtl"] h2, [dir="rtl"] h3 {
+    letter-spacing: 0;
+}
