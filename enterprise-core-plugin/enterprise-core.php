@@ -25,6 +25,7 @@ final class Bootstrap
     /** @var array<string,string> مسیرهای PSR-4 برای autoload */
     public const NAMESPACES = [
         'Enterprise\\'                  => 'includes/',
+        'Enterprise\\Core\\'            => 'includes/Core/',
         'Enterprise\\Modules\\'         => 'modules/',
         'Enterprise\\Api\\'             => 'api/',
         'Enterprise\\Admin\\'           => 'admin/',
