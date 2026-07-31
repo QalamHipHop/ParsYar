@@ -44,14 +44,25 @@ $html = str_replace('"/assets/', '"' . $theme_uri . '/assets/', $html);
 $html = str_replace('"/favicon.svg"', '"' . $theme_uri . '/favicon.svg"', $html);
 $html = str_replace('"/manifest.webmanifest"', '"' . $theme_uri . '/manifest.webmanifest"', $html);
 
-// Inject ParsYar config for the SPA (base URL, nonce, locale)
+// Inject ParsYar config for the SPA (base URL, nonce, locale, VAPID)
+$vapid = function_exists('Enterprise\Modules\Portal\AuthService')
+    ? \Enterprise\Modules\Portal\AuthService::vapidKeys()
+    : ['public' => '', 'private' => ''];
+$company_name = get_option('parsyar_company_name', get_bloginfo('name'));
+
 $config = [
-    'restUrl'  => esc_url_raw(rest_url('enterprise/v1/portal/')),
-    'nonce'    => wp_create_nonce('wp_rest'),
-    'siteName' => get_bloginfo('name'),
-    'locale'   => get_locale(),
-    'homeUrl'  => esc_url_raw(home_url('/')),
-    'user'     => is_user_logged_in() ? [
+    'restUrl'       => esc_url_raw(rest_url('enterprise/v1/portal/')),
+    'nonce'         => wp_create_nonce('wp_rest'),
+    'siteName'      => get_bloginfo('name'),
+    'locale'        => get_locale(),
+    'homeUrl'       => esc_url_raw(home_url('/')),
+    'vapidPublicKey' => $vapid['public'] ?? '',
+    'company'       => [
+        'name'         => $company_name,
+        'supportEmail' => get_option('parsyar_support_email', get_option('admin_email')),
+        'supportPhone' => get_option('parsyar_support_phone', ''),
+    ],
+    'user' => is_user_logged_in() ? [
         'id'   => get_current_user_id(),
         'name' => wp_get_current_user()->display_name,
     ] : null,
