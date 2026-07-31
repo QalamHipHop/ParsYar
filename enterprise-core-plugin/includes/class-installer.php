@@ -10,12 +10,34 @@ defined('ABSPATH') || exit;
  */
 final class Installer
 {
+    public const VERSION = '1.2.0';
+
     public static function activate(): void
     {
         self::ensureSchema();
         self::seedDefaults();
         self::ensureCapabilities();
+        self::runMigrations();
         flush_rewrite_rules();
+    }
+
+    /**
+     * اجرای مهاجرت‌های تدریجی برای سایت‌هایی که قبلاً نصب بوده‌اند.
+     */
+    public static function runMigrations(): void
+    {
+        global $wpdb;
+        $table = $wpdb->prefix . 'ent_fiscal_periods';
+
+        // اگه جدول fiscal_periods خالیه (نصب قدیمی یا تازه)، seed کن
+        // dbDelta در فعال‌سازی مجدد، جدول را می‌سازد ولی seed شرطی است.
+        $exists = $wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $table));
+        if ($exists && $wpdb->get_var("SELECT COUNT(*) FROM {$table}") === '0') {
+            self::seedFiscalPeriod();
+        }
+
+        // نسخه را ذخیره کن
+        update_option('enterprise_db_version', self::VERSION);
     }
 
     public static function deactivate(): void
@@ -175,6 +197,19 @@ final class Installer
             tax_invoice_uid VARCHAR(64) NULL
         ) {$charset};";
 
+        $sql[] = "CREATE TABLE {$prefix}fiscal_periods (
+            id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            company_id BIGINT UNSIGNED NOT NULL DEFAULT 1,
+            name VARCHAR(64) NOT NULL,
+            start_date DATE NOT NULL,
+            end_date DATE NOT NULL,
+            status ENUM('open','closed','locked') NOT NULL DEFAULT 'open',
+            calendar_type ENUM('gregorian','jalali') NOT NULL DEFAULT 'jalali',
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE KEY uniq_company_name (company_id, name),
+            KEY idx_company_date (company_id, start_date, end_date)
+        ) {$charset};";
+
         $sql[] = "CREATE TABLE {$prefix}employees (
             id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
             user_id BIGINT UNSIGNED NULL,
@@ -198,8 +233,6 @@ final class Installer
         foreach ($sql as $q) {
             dbDelta($q);
         }
-
-        update_option('enterprise_db_version', self::VERSION);
     }
 
     public static function seedDefaults(): void
@@ -209,7 +242,60 @@ final class Installer
         }
         \Enterprise\Modules\Accounting\ChartOfAccounts::installDefaults();
         \Enterprise\Modules\Objects\Bootstrap::installSystemObjects();
+        self::seedFiscalPeriod();
         update_option('enterprise_seeded', 'yes');
+    }
+
+    /**
+     * ساخت دورهٔ مالی پیش‌فرض بر اساس تنظیمات.
+     * - اگر تقویم شمسی انتخاب شده باشد: ۱ فروردین تا ۲۹ اسفند
+     * - در غیر این صورت: ژانویه تا دسامبر همان سال
+     */
+    public static function seedFiscalPeriod(?int $companyId = 1): int
+    {
+        global $wpdb;
+        $table = $wpdb->prefix . 'ent_fiscal_periods';
+
+        $existing = $wpdb->get_var($wpdb->prepare(
+            "SELECT id FROM {$table} WHERE company_id = %d ORDER BY id ASC LIMIT 1",
+            $companyId
+        ));
+        if ($existing) {
+            return (int) $existing;
+        }
+
+        $calendar = (string) get_option('enterprise_calendar_type', 'jalali');
+
+        if ($calendar === 'jalali') {
+            $jy = self::currentJalaliYear();
+            $start = \Enterprise\Jalali::toGregorian($jy, 1, 1);
+            $end   = \Enterprise\Jalali::toGregorian($jy, 12, (\Enterprise\Jalali::isLeap($jy) ? 30 : 29));
+        } else {
+            $y = (int) gmdate('Y');
+            $start = sprintf('%04d-01-01', $y);
+            $end   = sprintf('%04d-12-31', $y);
+        }
+
+        $name = $calendar === 'jalali'
+            ? 'سال مالی ' . self::currentJalaliYear()
+            : 'Fiscal Year ' . gmdate('Y');
+
+        $wpdb->insert($table, [
+            'company_id'    => $companyId,
+            'name'          => $name,
+            'start_date'    => $start,
+            'end_date'      => $end,
+            'status'        => 'open',
+            'calendar_type' => $calendar,
+        ]);
+
+        return (int) $wpdb->insert_id;
+    }
+
+    private static function currentJalaliYear(): int
+    {
+        $parts = \Enterprise\Jalali::fromGregorian(gmdate('Y-m-d'));
+        return (int) $parts['y'];
     }
 
     /**

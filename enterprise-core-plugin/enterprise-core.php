@@ -3,7 +3,7 @@
  * Plugin Name: Enterprise Core Platform
  * Plugin URI:  https://parsYar.local
  * Description: هسته مرکزی پلتفرم سازمانی ParsYar — شامل Custom Object Engine، حسابداری دوطرفه، CRM/ERP/HRM، اتوماسیون و انطباق با سامانه مؤدیان ایران.
- * Version:     1.0.0
+ * Version:     1.2.0
  * Author:      ParsYar Team
  * License:     GPL-2.0-or-later
  * Text Domain: enterprise-core
@@ -18,7 +18,7 @@ defined('ABSPATH') || exit;
 
 final class Bootstrap
 {
-    public const VERSION = '1.0.0';
+    public const VERSION = '1.2.0';
     public const SLUG    = 'enterprise-core';
     public const NS      = 'enterprise/v1';
 
