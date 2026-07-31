@@ -7,11 +7,15 @@
 - **Customer Portal (PWA) — ماژول کامل**:
   - `Enterprise\Modules\Portal\AuthService`: magic link + JWT (HS256) + refresh + rate limit + failed-attempt ban
   - `Enterprise\Modules\Portal\PortalService`: profile, invoices, orders, payments, tickets (CRUD), quote requests, push subscriptions, client events
+  - `Enterprise\Modules\Portal\PortalModule`: auto-boot (JWT/VAPID warmup + daily prune of expired tokens/sessions/events)
   - `Enterprise\Api\Portal\PortalController`: ۱۹ endpoint REST در namespace `enterprise/v1/portal/*`
+  - `Enterprise\Admin\PortalPage`: صفحهٔ مدیریت پورتال با آمار، پیکربندی، VAPID key
   - VAPID keypair در activation ساخته می‌شود
   - ۶ جدول جدید: `parsyar_portal_tokens`, `parsyar_portal_sessions`, `parsyar_portal_tickets`, `parsyar_quote_requests`, `parsyar_push_subscriptions`, `parsyar_portal_events`
   - migration `migratePortalTables()` در Installer
-  - ۲ تست واحد جدید (AuthService, PortalService)
+  - page template `portal.php` در theme اصلی (SPA mount + asset rewriting + WP config injection)
+  - PWA icons: `pwa-192x192.png`, `pwa-512x512.png`, `pwa-maskable-512x512.png`, `apple-touch-icon.png`
+  - ۲ تست واحد جدید (AuthService, PortalService) + smoke test
   - مستندات معماری در `docs/portal/ARCHITECTURE.md`
 - **PWA Frontend (React 18 + Vite 5 + Tailwind 3 + Workbox 7)**:
   - ۷ صفحه: Login, Verify, Dashboard, Invoices, Orders, Payments, Tickets
@@ -24,8 +28,12 @@
 ### تغییر (Changed)
 
 - Installer VERSION به 1.7.0 ارتقا یافت
-- PSR-4 autoload: `Enterprise\Modules\Portal\` و `Enterprise\Api\Portal\` اضافه شد
+- Bootstrap VERSION به 1.7.0 sync شد (قبلاً 1.3.0)
+- Author: QalamHiphop (parsYar dev) به‌عنوان maintainer
+- PSR-4 autoload: `Enterprise\Modules\Portal\`, `Enterprise\Api\Portal\`, `Enterprise\Modules\Mobile\`, `Enterprise\Api\Mobile\` اضافه شد
 - `RestRouter::register()`: portal routes رجیستر می‌شوند
+- منوی ادمین: زیرمنوی «Customer Portal» اضافه شد
+- `enterprise_daily` cron event برای prune روزانه ثبت می‌شود
 
 تمام تغییرات مهم این پروژه در این فایل ثبت می‌شود.
 قالب بر اساس [Keep a Changelog](https://keepachangelog.com/fa/1.1.0/) و

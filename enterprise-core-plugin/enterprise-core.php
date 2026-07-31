@@ -3,8 +3,8 @@
  * Plugin Name: Enterprise Core Platform
  * Plugin URI:  https://parsYar.local
  * Description: هسته مرکزی پلتفرم سازمانی ParsYar — شامل Custom Object Engine، حسابداری دوطرفه، CRM/ERP/HRM، اتوماسیون و انطباق با سامانه مؤدیان ایران.
- * Version:     1.3.0
- * Author:      ParsYar Team
+ * Version:     1.7.0
+ * Author:      ParsYar Team (QalamHiphop)
  * License:     GPL-2.0-or-later
  * Text Domain: enterprise-core
  * Requires PHP: 8.0
@@ -18,7 +18,7 @@ defined('ABSPATH') || exit;
 
 final class Bootstrap
 {
-    public const VERSION = '1.3.0';
+    public const VERSION = '1.7.0';
     public const SLUG    = 'enterprise-core';
     public const NS      = 'enterprise/v1';
 
@@ -35,6 +35,8 @@ final class Bootstrap
         'Enterprise\\Support\\'         => 'includes/support/',
         'Enterprise\\Modules\\Portal\\'   => 'modules/portal/',
         'Enterprise\\Api\\Portal\\'        => 'api/portal/',
+        'Enterprise\\Modules\\Mobile\\'    => 'modules/mobile/',
+        'Enterprise\\Api\\Mobile\\'        => 'api/mobile/',
     ];
 
     private static ?Bootstrap $instance = null;
@@ -121,6 +123,7 @@ final class Bootstrap
         \Enterprise\Modules\Audit\Logger::boot();
         \Enterprise\Modules\Workflow\Repository::boot();
         \Enterprise\Modules\Multitenant\Context::boot();
+        \Enterprise\Modules\Portal\PortalModule::boot();
 
         add_action('enterprise_event', [Workflow\Dispatcher::class, 'handle'], 10, 2);
     }

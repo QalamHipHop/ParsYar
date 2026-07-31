@@ -26,5 +26,6 @@ final class Menu
         add_submenu_page('enterprise', 'Workflows',    'Workflows',    'manage_enterprise', 'enterprise-flows',    [WorkflowsPage::class, 'render']);
         add_submenu_page('enterprise', 'Audit Log',    'Audit Log',    'manage_enterprise', 'enterprise-audit',    [AuditPage::class, 'render']);
         add_submenu_page('enterprise', 'Setup',        'Setup Wizard', 'manage_enterprise', 'enterprise-setup',    [Wizard::class, 'render']);
+        add_submenu_page('enterprise', 'Portal',       'Customer Portal', 'manage_enterprise', 'enterprise-portal', [PortalPage::class, 'render']);
     }
 }
