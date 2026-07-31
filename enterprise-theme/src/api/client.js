@@ -151,8 +151,29 @@ export const api = {
 
   // ─── Multitenant ───
   tenants:        ()      => request('/tenants'),
+  tenant:         (id)    => request(`/tenants/${id}`),
+  createTenant:   (b)     => request('/tenants', { method: 'POST', body: b }),
+  updateTenant:   (id, b) => request(`/tenants/${id}`, { method: 'PUT', body: b }),
+  archiveTenant:  (id)    => request(`/tenants/${id}`, { method: 'DELETE' }),
   currentTenant:  ()      => request('/tenants/current'),
   myMemberships:  ()      => request('/tenants/me'),
   switchTenant:   (b)     => request('/tenants/switch', { method: 'POST', body: b }),
   branches:       (tid)   => request(`/tenants/${tid}/branches`),
+  createBranch:   (tid, b)=> request(`/tenants/${tid}/branches`, { method: 'POST', body: b }),
+  members:        (tid)   => request(`/tenants/${tid}/members`),
+  addMember:      (tid, b)=> request(`/tenants/${tid}/members`, { method: 'POST', body: b }),
+
+  // ─── Profile / Auth extras ───
+  me:             ()      => request('/auth/me'),
+  updateMe:       (b)     => request('/auth/me', { method: 'PUT', body: b }),
+
+  // ─── Notifications ───
+  notifications:  ()      => request('/notifications'),
+  markNotifRead:  (id)    => request(`/notifications/${id}/read`, { method: 'POST' }),
+  markAllNotifs:  ()      => request('/notifications/read-all', { method: 'POST' }),
+  clearNotifs:    ()      => request('/notifications/clear', { method: 'POST' }),
+
+  // ─── Wizard ───
+  wizardState:    ()      => request('/wizard/state'),
+  setWizardStep:  (b)     => request('/wizard/state', { method: 'POST', body: b }),
 };
