@@ -1,12 +1,18 @@
 <?php
+/**
+ * Schema Builder — برای هر Object یک Flat Table اختصاصی می‌سازد.
+ *
+ * @package Enterprise\Modules\Objects
+ */
+
 declare(strict_types=1);
 
 namespace Enterprise\Modules\Objects;
 
 defined('ABSPATH') || exit;
 
-use Enterprise\Support\Db;
-use Enterprise\Installer;
+use Enterprise\Modules\Objects\FieldTypes;
+use Enterprise\Modules\Objects\InvalidFieldTypeException;
 
 /**
  * Schema Builder — برای هر Object یک Flat Table اختصاصی می‌سازد.
@@ -55,7 +61,7 @@ final class SchemaBuilder
             $columns[] = $col;
             if (!empty($f['is_unique'])) {
                 $indexes[] = 'UNIQUE KEY uniq_' . $f['api_name'] . ' (' . $f['api_name'] . ')';
-            } elseif (in_array($f['type'], ['email', 'text', 'select'], true)) {
+            } elseif (in_array($f['type'], [FieldTypes::EMAIL, FieldTypes::TEXT, FieldTypes::ENUM, FieldTypes::MOBILE, FieldTypes::NID, FieldTypes::SHEBA, FieldTypes::CARD], true)) {
                 $indexes[] = 'KEY idx_' . $f['api_name'] . ' (' . $f['api_name'] . ')';
             }
         }
@@ -90,6 +96,7 @@ final class SchemaBuilder
 
     /**
      * نگاشت نوع فیلد به نوع ستون MySQL.
+     * اکنون از FieldTypes::ALL پشتیبانی می‌کند (۲۲ نوع).
      */
     private static function columnSpec(array $field): ?string
     {
@@ -98,20 +105,26 @@ final class SchemaBuilder
             return null;
         }
         $type = $field['type'] ?? 'text';
+        if (!in_array($type, FieldTypes::ALL, true)) {
+            throw new InvalidFieldTypeException($type);
+        }
+        $sql = FieldTypes::sqlType($type);
         $null = empty($field['is_required']) ? 'NULL' : 'NOT NULL';
-        $col  = match ($type) {
-            'text', 'email', 'phone', 'url', 'select' => "VARCHAR(255) {$null}",
-            'textarea'                                 => "TEXT {$null}",
-            'number'                                   => "INT {$null}",
-            'decimal', 'currency'                      => "DECIMAL(20,2) {$null}",
-            'boolean'                                  => "TINYINT(1) NOT NULL DEFAULT 0",
-            'date'                                     => "DATE {$null}",
-            'datetime'                                 => "DATETIME {$null}",
-            'multiselect'                              => "TEXT {$null}",
-            'lookup'                                   => "BIGINT UNSIGNED {$null}",
-            default                                    => "VARCHAR(255) {$null}",
-        };
-        return "{$name} {$col}";
+
+        // بولی همیشه NOT NULL DEFAULT 0
+        if ($type === FieldTypes::BOOL) {
+            return "{$name} {$sql} NOT NULL DEFAULT 0";
+        }
+        // FK نیازی به default ندارد
+        if ($type === FieldTypes::FK) {
+            return "{$name} {$sql} {$null}";
+        }
+        // JSON و MULTI نیازی به default ندارند اگر اختیاری باشند
+        if (in_array($type, [FieldTypes::JSON, FieldTypes::MULTI, FieldTypes::TEXTAREA, FieldTypes::RICH], true)) {
+            return "{$name} {$sql} {$null}";
+        }
+        // بقیه
+        return "{$name} {$sql} {$null}";
     }
 
     private static function getExistingColumns(string $table): array
@@ -147,7 +160,7 @@ final class SchemaBuilder
             $wpdb->query("ALTER TABLE {$table} ADD COLUMN {$col}");
             if (!empty($f['is_unique'])) {
                 $wpdb->query("ALTER TABLE {$table} ADD UNIQUE KEY uniq_{$name} ({$name})");
-            } elseif (in_array($f['type'], ['email', 'text', 'select'], true)) {
+            } elseif (in_array($f['type'], [FieldTypes::EMAIL, FieldTypes::TEXT, FieldTypes::ENUM, FieldTypes::MOBILE, FieldTypes::NID, FieldTypes::SHEBA, FieldTypes::CARD], true)) {
                 $wpdb->query("ALTER TABLE {$table} ADD KEY idx_{$name} ({$name})");
             }
         }
