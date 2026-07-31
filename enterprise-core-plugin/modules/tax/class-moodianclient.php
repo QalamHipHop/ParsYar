@@ -278,7 +278,7 @@ final class MoodianClient
     {
         global $wpdb;
         $row = $wpdb->get_row(
-            $wpdb->prepare("SELECT * FROM {$wpdb->prefix}parsyar_invoices WHERE id = %d", $id),
+            $wpdb->prepare("SELECT * FROM {$wpdb->prefix}ent_invoices WHERE id = %d", $id),
             ARRAY_A
         );
         return $row ?: null;
@@ -304,7 +304,7 @@ final class MoodianClient
     {
         global $wpdb;
         $wpdb->update(
-            $wpdb->prefix . 'parsyar_invoices',
+            $wpdb->prefix . 'ent_invoices',
             [
                 'tax_invoice_uid'    => $uid,
                 'moodian_reference'  => $ref,
@@ -321,7 +321,7 @@ final class MoodianClient
     {
         global $wpdb;
         $wpdb->update(
-            $wpdb->prefix . 'parsyar_invoices',
+            $wpdb->prefix . 'ent_invoices',
             [
                 'moodian_status'  => self::STATUS_REJECTED,
                 'moodian_error'   => $msg,

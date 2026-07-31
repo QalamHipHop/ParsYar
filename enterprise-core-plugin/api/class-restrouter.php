@@ -19,6 +19,9 @@ final class RestRouter
     {
         $ns = \Enterprise\Bootstrap::NS;
 
+        // Rate limit + Security headers (CSP, X-Frame-Options, ...)
+        SecurityHeaders::register();
+
         /* ------------------------------------------------------------------ *
          *  Auth
          * ------------------------------------------------------------------ */

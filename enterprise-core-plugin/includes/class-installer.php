@@ -10,7 +10,7 @@ defined('ABSPATH') || exit;
  */
 final class Installer
 {
-    public const VERSION = '1.2.0';
+    public const VERSION = '1.2.1';
 
     public static function activate(): void
     {
@@ -36,8 +36,129 @@ final class Installer
             self::seedFiscalPeriod();
         }
 
+        // مهاجرت v1.2.1: ساخت جدول‌های دامنه‌ای parsyar_* (workflows, runs, logs, webpush)
+        // که در نسخه‌های قبلی installer ساخته نمی‌شد ولی Repository به آن‌ها ارجاع می‌دهد.
+        self::migrateParsyarTables();
+
+        // مهاجرت v1.2.1: افزودن ستون tax_invoice_uid به ent_invoices (مورد نیاز Moodian client)
+        self::migrateInvoiceTaxUid();
+
+        // اگه جدول accounts خالیه (نصب قدیمی‌ای که seed شکست خورده)، seed کن
+        self::seedAccountsIfEmpty();
+
         // نسخه را ذخیره کن
         update_option('enterprise_db_version', self::VERSION);
+    }
+
+    /**
+     * ساخت ایمن جدول‌های parsyar_* (workflows / workflow_runs / workflow_logs / webpush_subscriptions).
+     * این جدول‌ها در نسخه‌های قبلی installer ساخته نمی‌شد و باعث fatal error
+     * در Repository::startRun/log می‌شد. dbDelta در برابر CREATE TABLE IF NOT EXISTS
+     * ایمن است و برای سایت‌های از قبل نصب‌شده، migration idempotent است.
+     */
+    private static function migrateParsyarTables(): void
+    {
+        require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+        global $wpdb;
+        $charset = $wpdb->get_charset_collate();
+        $parsyar = $wpdb->prefix . 'parsyar_';
+
+        $sql = [];
+        $sql[] = "CREATE TABLE {$parsyar}workflows (
+            id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            name VARCHAR(128) NOT NULL,
+            trigger_event VARCHAR(64) NOT NULL,
+            graph_json LONGTEXT NOT NULL,
+            is_active TINYINT(1) NOT NULL DEFAULT 1,
+            description TEXT NULL,
+            created_by BIGINT UNSIGNED NULL,
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME NULL,
+            KEY idx_trigger (trigger_event),
+            KEY idx_active (is_active)
+        ) {$charset};";
+
+        $sql[] = "CREATE TABLE {$parsyar}workflow_runs (
+            id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            workflow_id BIGINT UNSIGNED NOT NULL,
+            event VARCHAR(64) NOT NULL,
+            payload LONGTEXT NULL,
+            status VARCHAR(32) NOT NULL DEFAULT 'running',
+            error TEXT NULL,
+            started_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            finished_at DATETIME NULL,
+            KEY idx_workflow (workflow_id),
+            KEY idx_status (status)
+        ) {$charset};";
+
+        $sql[] = "CREATE TABLE {$parsyar}workflow_logs (
+            id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            workflow_id BIGINT UNSIGNED NOT NULL,
+            run_id BIGINT UNSIGNED NULL,
+            level VARCHAR(16) NOT NULL DEFAULT 'info',
+            message TEXT NOT NULL,
+            context LONGTEXT NULL,
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            KEY idx_workflow (workflow_id),
+            KEY idx_run (run_id)
+        ) {$charset};";
+
+        $sql[] = "CREATE TABLE {$parsyar}webpush_subscriptions (
+            id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            user_id BIGINT UNSIGNED NOT NULL,
+            endpoint TEXT NOT NULL,
+            p256dh TEXT NULL,
+            auth TEXT NULL,
+            user_agent VARCHAR(255) NULL,
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            last_used_at DATETIME NULL,
+            KEY idx_user (user_id)
+        ) {$charset};";
+
+        foreach ($sql as $stmt) {
+            dbDelta($stmt);
+        }
+    }
+
+    /**
+     * افزودن ستون tax_invoice_uid به ent_invoices در سایت‌هایی که قبل از v1.2.1
+     * این ستون را ندارند. Moodian client برای ذخیرهٔ شناسهٔ مالیاتی برگشتی از سامانهٔ مؤدیان
+     * به این ستون نیاز دارد. عملیات idempotent است.
+     */
+    private static function migrateInvoiceTaxUid(): void
+    {
+        global $wpdb;
+        $table = $wpdb->prefix . 'ent_invoices';
+        $exists = $wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $table));
+        if (!$exists) {
+            return;
+        }
+        $col = $wpdb->get_var($wpdb->prepare(
+            "SHOW COLUMNS FROM {$table} LIKE %s",
+            'tax_invoice_uid'
+        ));
+        if (!$col) {
+            $wpdb->query("ALTER TABLE {$table} ADD COLUMN tax_invoice_uid VARCHAR(64) NULL AFTER uuid, ADD UNIQUE KEY uniq_tax_uid (tax_invoice_uid)");
+        }
+    }
+
+    /**
+     * در سایت‌هایی که قبل از v1.2.0 نصب شده‌اند و seeding آن‌ها شکست خورده
+     * (یا قبلاً enterprise_seeded=yes گذاشته شده ولی accounts خالی مانده)،
+     * اکنون Chart of Accounts را seed می‌کنیم.
+     */
+    private static function seedAccountsIfEmpty(): void
+    {
+        global $wpdb;
+        $table = $wpdb->prefix . 'ent_accounts';
+        $exists = $wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $table));
+        if (!$exists) {
+            return;
+        }
+        $count = (int) $wpdb->get_var("SELECT COUNT(*) FROM {$table}");
+        if ($count === 0) {
+            \Enterprise\Modules\Accounting\ChartOfAccounts::installDefaults();
+        }
     }
 
     public static function deactivate(): void
