@@ -435,7 +435,7 @@ wp enterprise demo load
 - [x] **1.4.0** — Full HRM (Employees, Attendance, Leave, Payroll, Performance)
 - [x] **1.5.0** — Visual Workflow Editor (drag-drop node graph + 12 node types + templates)
 - [x] **1.6.0** — Custom Report Builder (11 sources, 5 chart types, CSV export, templates)
-- [ ] **1.7.0** — Customer Portal (PWA)
+- [x] **1.7.0** — Customer Portal (PWA)
 - [ ] **1.8.0** — Mobile app (React Native)
 - [ ] **2.0.0** — Multi-tenant SaaS mode (Holding: per-tenant isolation)
 

@@ -1,6 +1,27 @@
 # Changelog
 
-## [1.7.0] - 2026-07-31
+## [1.7.0] - 2026-07-31 (PWA frontend completed)
+
+### افزوده (Added)
+
+- **PWA Frontend — تکمیل** (این commit):
+  - `src/lib/types.ts`: تایپ‌های مشترک (Session, Profile, Invoice, Order, Payment, Ticket, Notification)
+  - `src/lib/api.ts`: کلاینت fetch کامل با rotation خودکار JWT روی 401، persist در localStorage، VAPID، push subscribe/unsubscribe، لاگ رویداد، و هلپرهای `formatCurrency` / `formatDateJalali`
+  - `src/lib/i18n.ts`: باندل کامل fa-IR برای همهٔ صفحات (login, verify, dashboard, invoices, orders, payments, tickets, install, push)
+  - `src/lib/api.test.ts`: تست‌های Vitest برای format helpers + session roundtrip
+  - `src/vite-env.d.ts`: type reference برای Vite + vite-plugin-pwa
+  - `src/pages/LoginPage.tsx`: فرم ایمیل، submit magic link، dev_link bypass، پیام rate-limit
+  - `src/pages/VerifyPage.tsx`: query `?token=…` → `/auth/verify`، حالت‌های success/error
+  - `src/pages/DashboardPage.tsx`: خوش‌آمد، ۳-stat grid، آخرین فاکتور، پرداخت‌های اخیر
+  - `src/pages/InvoicesPage.tsx`: لیست با status badge، total/paid، نمایش `tax_invoice_uid`
+  - `src/pages/OrdersPage.tsx`: لیست با status
+  - `src/pages/PaymentsPage.tsx`: لیست با method/gateway/ref
+  - `src/pages/TicketsPage.tsx`: لیست + فرم تیکت جدید (category, priority)
+  - `src/components/Banners.tsx`: `InstallBanner` (capture `beforeinstallprompt`) + `PushBanner` (subscribe VAPID، تأخیر ۵ ثانیه)
+  - `index.html`: preconnect فونت Vazirmatn + apple-touch-icon + PWA meta tags
+  - `enterprise-theme/portal.php`: تزریق `vapidPublicKey` و اطلاعات پشتیبانی به `window.parsyarPortalConfig`
+
+## [1.7.0] - 2026-07-31 (initial release)
 
 ### افزوده (Added)
 
