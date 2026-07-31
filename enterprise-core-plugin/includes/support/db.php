@@ -113,6 +113,37 @@ final class Db
     }
 
     /**
+     * دریافت یک ستون aggregate (SUM/AVG/MAX/MIN) یا هر expression ساده.
+     *
+     * @param string $column   نام ستون یا expression (مثلاً "SUM(days)" یا "id")
+     * @param mixed  $fallback مقدار پیش‌فرض اگر NULL برگشت
+     */
+    public static function getVar(
+        string $table,
+        array $where,
+        string $column = 'id',
+        mixed $fallback = null,
+        string $prefix = 'ent'
+    ): mixed {
+        global $wpdb;
+        $t = self::table($table, $prefix);
+        $expr = sanitize_key(preg_replace('/[^A-Za-z0-9_(),\\.\\* ]/', '', $column) ?? $column);
+        if ($expr === '') {
+            $expr = 'id';
+        }
+        if (empty($where)) {
+            $val = $wpdb->get_var("SELECT {$expr} FROM {$t} LIMIT 1");
+        } else {
+            [$clause, $params] = self::buildWhere($where);
+            $val = $wpdb->get_var($wpdb->prepare(
+                "SELECT {$expr} FROM {$t} WHERE {$clause} LIMIT 1",
+                $params
+            ));
+        }
+        return $val !== null && $val !== '' ? $val : $fallback;
+    }
+
+    /**
      * اجرای کوئری دلخواه (با پارامترهای امن).
      *
      * @param array<int,mixed> $params

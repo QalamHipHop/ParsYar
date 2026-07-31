@@ -822,9 +822,141 @@ final class RestRouter
                 'permission_callback' => [AuthController::class, 'capHR'],
             ],
         ]);
-        register_rest_route($ns, '/hrm/payroll/run', [
+        register_rest_route($ns, '/hrm/employees/summary', [
+            'methods'             => 'GET',
+            'callback'            => [HrmController::class, 'employeesSummary'],
+            'permission_callback' => [AuthController::class, 'capHR'],
+        ]);
+        register_rest_route($ns, '/hrm/employees/(?P<id>\d+)', [
+            [
+                'methods'             => 'GET',
+                'callback'            => [HrmController::class, 'employeesShow'],
+                'permission_callback' => [AuthController::class, 'capHR'],
+            ],
+            [
+                'methods'             => 'PUT,PATCH',
+                'callback'            => [HrmController::class, 'employeesUpdate'],
+                'permission_callback' => [AuthController::class, 'capHR'],
+            ],
+            [
+                'methods'             => 'DELETE',
+                'callback'            => [HrmController::class, 'employeesDestroy'],
+                'permission_callback' => [AuthController::class, 'capAdmin'],
+            ],
+        ]);
+
+        register_rest_route($ns, '/hrm/attendance', [
+            'methods'             => 'GET',
+            'callback'            => [HrmController::class, 'attendanceIndex'],
+            'permission_callback' => [AuthController::class, 'capHR'],
+            'args' => [
+                'employee_id' => ['required' => true, 'type' => 'integer'],
+                'year'        => ['required' => false, 'type' => 'integer', 'default' => 0],
+                'month'       => ['required' => false, 'type' => 'integer', 'default' => 0],
+            ],
+        ]);
+        register_rest_route($ns, '/hrm/attendance/summary', [
+            'methods'             => 'GET',
+            'callback'            => [HrmController::class, 'attendanceSummary'],
+            'permission_callback' => [AuthController::class, 'capHR'],
+        ]);
+        register_rest_route($ns, '/hrm/attendance/team', [
+            'methods'             => 'GET',
+            'callback'            => [HrmController::class, 'attendanceTeam'],
+            'permission_callback' => [AuthController::class, 'capHR'],
+        ]);
+        register_rest_route($ns, '/hrm/attendance/check-in', [
             'methods'             => 'POST',
-            'callback'            => [HrmController::class, 'payrollRun'],
+            'callback'            => [HrmController::class, 'attendanceCheckIn'],
+            'permission_callback' => [AuthController::class, 'capHR'],
+        ]);
+        register_rest_route($ns, '/hrm/attendance/check-out', [
+            'methods'             => 'POST',
+            'callback'            => [HrmController::class, 'attendanceCheckOut'],
+            'permission_callback' => [AuthController::class, 'capHR'],
+        ]);
+
+        register_rest_route($ns, '/hrm/leaves', [
+            [
+                'methods'             => 'GET',
+                'callback'            => [HrmController::class, 'leavesIndex'],
+                'permission_callback' => [AuthController::class, 'capHR'],
+            ],
+            [
+                'methods'             => 'POST',
+                'callback'            => [HrmController::class, 'leavesStore'],
+                'permission_callback' => [AuthController::class, 'capHR'],
+            ],
+        ]);
+        register_rest_route($ns, '/hrm/leaves/balance', [
+            'methods'             => 'GET',
+            'callback'            => [HrmController::class, 'leavesBalance'],
+            'permission_callback' => [AuthController::class, 'capHR'],
+        ]);
+        register_rest_route($ns, '/hrm/leaves/(?P<id>\d+)/approve', [
+            'methods'             => 'POST',
+            'callback'            => [HrmController::class, 'leavesApprove'],
+            'permission_callback' => [AuthController::class, 'capHR'],
+        ]);
+        register_rest_route($ns, '/hrm/leaves/(?P<id>\d+)/reject', [
+            'methods'             => 'POST',
+            'callback'            => [HrmController::class, 'leavesReject'],
+            'permission_callback' => [AuthController::class, 'capHR'],
+        ]);
+        register_rest_route($ns, '/hrm/leaves/(?P<id>\d+)/cancel', [
+            'methods'             => 'POST',
+            'callback'            => [HrmController::class, 'leavesCancel'],
+            'permission_callback' => [AuthController::class, 'capHR'],
+        ]);
+
+        register_rest_route($ns, '/hrm/reviews', [
+            [
+                'methods'             => 'GET',
+                'callback'            => [HrmController::class, 'reviewsIndex'],
+                'permission_callback' => [AuthController::class, 'capHR'],
+            ],
+            [
+                'methods'             => 'POST',
+                'callback'            => [HrmController::class, 'reviewsStore'],
+                'permission_callback' => [AuthController::class, 'capHR'],
+            ],
+        ]);
+        register_rest_route($ns, '/hrm/reviews/(?P<id>\d+)/submit', [
+            'methods'             => 'POST',
+            'callback'            => [HrmController::class, 'reviewsSubmit'],
+            'permission_callback' => [AuthController::class, 'capHR'],
+        ]);
+        register_rest_route($ns, '/hrm/reviews/(?P<id>\d+)/finalize', [
+            'methods'             => 'POST',
+            'callback'            => [HrmController::class, 'reviewsFinalize'],
+            'permission_callback' => [AuthController::class, 'capHR'],
+        ]);
+
+        register_rest_route($ns, '/hrm/payroll', [
+            [
+                'methods'             => 'GET',
+                'callback'            => [HrmController::class, 'payrollIndex'],
+                'permission_callback' => [AuthController::class, 'capHR'],
+            ],
+            [
+                'methods'             => 'POST',
+                'callback'            => [HrmController::class, 'payrollRun'],
+                'permission_callback' => [AuthController::class, 'capHR'],
+            ],
+        ]);
+        register_rest_route($ns, '/hrm/payroll/(?P<id>\d+)', [
+            'methods'             => 'GET',
+            'callback'            => [HrmController::class, 'payrollShow'],
+            'permission_callback' => [AuthController::class, 'capHR'],
+        ]);
+        register_rest_route($ns, '/hrm/payroll/(?P<id>\d+)/approve', [
+            'methods'             => 'POST',
+            'callback'            => [HrmController::class, 'payrollApprove'],
+            'permission_callback' => [AuthController::class, 'capHR'],
+        ]);
+        register_rest_route($ns, '/hrm/payroll/(?P<id>\d+)/pay', [
+            'methods'             => 'POST',
+            'callback'            => [HrmController::class, 'payrollPay'],
             'permission_callback' => [AuthController::class, 'capHR'],
         ]);
 
