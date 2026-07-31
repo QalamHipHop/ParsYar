@@ -1,22 +1,27 @@
 <?php
+/**
+ * ثبت Routeهای REST API.
+ *
+ * Prefix: /wp-json/enterprise/v1
+ *
+ * @package Enterprise\Api
+ */
+
 declare(strict_types=1);
 
 namespace Enterprise\Api;
 
 defined('ABSPATH') || exit;
 
-/**
- * ثبت Routeهای REST API.
- *
- * Prefix: /wp-json/enterprise/v1
- */
 final class RestRouter
 {
     public static function register(): void
     {
         $ns = \Enterprise\Bootstrap::NS;
 
-        // Auth
+        /* ------------------------------------------------------------------ *
+         *  Auth
+         * ------------------------------------------------------------------ */
         register_rest_route($ns, '/auth/login', [
             'methods'             => 'POST',
             'callback'            => [AuthController::class, 'login'],
@@ -28,7 +33,9 @@ final class RestRouter
             'permission_callback' => [AuthController::class, 'isAuthed'],
         ]);
 
-        // Objects
+        /* ------------------------------------------------------------------ *
+         *  Objects (custom object engine)
+         * ------------------------------------------------------------------ */
         register_rest_route($ns, '/objects', [
             'methods'             => 'GET',
             'callback'            => [ObjectController::class, 'index'],
@@ -74,7 +81,323 @@ final class RestRouter
             ],
         ]);
 
-        // Accounting
+        /* ------------------------------------------------------------------ *
+         *  CRM — Contacts
+         * ------------------------------------------------------------------ */
+        register_rest_route($ns, '/crm/contacts', [
+            [
+                'methods'             => 'GET',
+                'callback'            => [CrmController::class, 'contactsIndex'],
+                'permission_callback' => [AuthController::class, 'capRecords'],
+            ],
+            [
+                'methods'             => 'POST',
+                'callback'            => [CrmController::class, 'contactsStore'],
+                'permission_callback' => [AuthController::class, 'capRecords'],
+            ],
+        ]);
+        register_rest_route($ns, '/crm/contacts/lifecycle-breakdown', [
+            'methods'             => 'GET',
+            'callback'            => [CrmController::class, 'contactsLifecycleBreakdown'],
+            'permission_callback' => [AuthController::class, 'capRecords'],
+        ]);
+        register_rest_route($ns, '/crm/contacts/quick-search', [
+            'methods'             => 'GET',
+            'callback'            => [CrmController::class, 'contactsQuickSearch'],
+            'permission_callback' => [AuthController::class, 'capRecords'],
+        ]);
+        register_rest_route($ns, '/crm/contacts/(?P<id>[\w-]+)', [
+            [
+                'methods'             => 'GET',
+                'callback'            => [CrmController::class, 'contactsShow'],
+                'permission_callback' => [AuthController::class, 'capRecords'],
+            ],
+            [
+                'methods'             => 'PUT,PATCH',
+                'callback'            => [CrmController::class, 'contactsUpdate'],
+                'permission_callback' => [AuthController::class, 'capRecords'],
+            ],
+            [
+                'methods'             => 'DELETE',
+                'callback'            => [CrmController::class, 'contactsDestroy'],
+                'permission_callback' => [AuthController::class, 'capRecords'],
+            ],
+        ]);
+        register_rest_route($ns, '/crm/contacts/(?P<id>\d+)/timeline', [
+            'methods'             => 'GET',
+            'callback'            => [CrmController::class, 'contactsTimeline'],
+            'permission_callback' => [AuthController::class, 'capRecords'],
+        ]);
+        register_rest_route($ns, '/crm/contacts/(?P<id>\d+)/merge', [
+            'methods'             => 'POST',
+            'callback'            => [CrmController::class, 'contactsMerge'],
+            'permission_callback' => [AuthController::class, 'capRecords'],
+        ]);
+        register_rest_route($ns, '/crm/contacts/(?P<id>\d+)/lifecycle', [
+            'methods'             => 'POST',
+            'callback'            => [CrmController::class, 'contactsLifecycle'],
+            'permission_callback' => [AuthController::class, 'capRecords'],
+        ]);
+
+        /* ------------------------------------------------------------------ *
+         *  CRM — Organizations
+         * ------------------------------------------------------------------ */
+        register_rest_route($ns, '/crm/organizations', [
+            [
+                'methods'             => 'GET',
+                'callback'            => [CrmController::class, 'organizationsIndex'],
+                'permission_callback' => [AuthController::class, 'capRecords'],
+            ],
+            [
+                'methods'             => 'POST',
+                'callback'            => [CrmController::class, 'organizationsStore'],
+                'permission_callback' => [AuthController::class, 'capRecords'],
+            ],
+        ]);
+        register_rest_route($ns, '/crm/organizations/industry-breakdown', [
+            'methods'             => 'GET',
+            'callback'            => [CrmController::class, 'organizationsIndustryBreakdown'],
+            'permission_callback' => [AuthController::class, 'capRecords'],
+        ]);
+        register_rest_route($ns, '/crm/organizations/geo-breakdown', [
+            'methods'             => 'GET',
+            'callback'            => [CrmController::class, 'organizationsGeoBreakdown'],
+            'permission_callback' => [AuthController::class, 'capRecords'],
+        ]);
+        register_rest_route($ns, '/crm/organizations/(?P<id>[\w-]+)', [
+            [
+                'methods'             => 'GET',
+                'callback'            => [CrmController::class, 'organizationsShow'],
+                'permission_callback' => [AuthController::class, 'capRecords'],
+            ],
+            [
+                'methods'             => 'PUT,PATCH',
+                'callback'            => [CrmController::class, 'organizationsUpdate'],
+                'permission_callback' => [AuthController::class, 'capRecords'],
+            ],
+            [
+                'methods'             => 'DELETE',
+                'callback'            => [CrmController::class, 'organizationsDestroy'],
+                'permission_callback' => [AuthController::class, 'capRecords'],
+            ],
+        ]);
+
+        /* ------------------------------------------------------------------ *
+         *  CRM — Leads
+         * ------------------------------------------------------------------ */
+        register_rest_route($ns, '/crm/leads', [
+            [
+                'methods'             => 'GET',
+                'callback'            => [CrmController::class, 'leadsIndex'],
+                'permission_callback' => [AuthController::class, 'capRecords'],
+            ],
+            [
+                'methods'             => 'POST',
+                'callback'            => [CrmController::class, 'leadsStore'],
+                'permission_callback' => [AuthController::class, 'capRecords'],
+            ],
+        ]);
+        register_rest_route($ns, '/crm/leads/funnel', [
+            'methods'             => 'GET',
+            'callback'            => [CrmController::class, 'leadsFunnel'],
+            'permission_callback' => [AuthController::class, 'capRecords'],
+        ]);
+        register_rest_route($ns, '/crm/leads/hot', [
+            'methods'             => 'GET',
+            'callback'            => [CrmController::class, 'leadsHot'],
+            'permission_callback' => [AuthController::class, 'capRecords'],
+        ]);
+        register_rest_route($ns, '/crm/leads/(?P<id>[\w-]+)', [
+            [
+                'methods'             => 'GET',
+                'callback'            => [CrmController::class, 'leadsShow'],
+                'permission_callback' => [AuthController::class, 'capRecords'],
+            ],
+            [
+                'methods'             => 'PUT,PATCH',
+                'callback'            => [CrmController::class, 'leadsUpdate'],
+                'permission_callback' => [AuthController::class, 'capRecords'],
+            ],
+            [
+                'methods'             => 'DELETE',
+                'callback'            => [CrmController::class, 'leadsDestroy'],
+                'permission_callback' => [AuthController::class, 'capRecords'],
+            ],
+        ]);
+        register_rest_route($ns, '/crm/leads/(?P<id>\d+)/convert', [
+            'methods'             => 'POST',
+            'callback'            => [CrmController::class, 'leadsConvert'],
+            'permission_callback' => [AuthController::class, 'capRecords'],
+        ]);
+        register_rest_route($ns, '/crm/leads/(?P<id>\d+)/assign', [
+            'methods'             => 'POST',
+            'callback'            => [CrmController::class, 'leadsAssign'],
+            'permission_callback' => [AuthController::class, 'capRecords'],
+        ]);
+
+        /* ------------------------------------------------------------------ *
+         *  CRM — Deals / Pipelines
+         * ------------------------------------------------------------------ */
+        register_rest_route($ns, '/crm/deals', [
+            [
+                'methods'             => 'GET',
+                'callback'            => [CrmController::class, 'dealsIndex'],
+                'permission_callback' => [AuthController::class, 'capRecords'],
+            ],
+            [
+                'methods'             => 'POST',
+                'callback'            => [CrmController::class, 'dealsStore'],
+                'permission_callback' => [AuthController::class, 'capRecords'],
+            ],
+        ]);
+        register_rest_route($ns, '/crm/deals/rotting', [
+            'methods'             => 'GET',
+            'callback'            => [CrmController::class, 'dealsRotting'],
+            'permission_callback' => [AuthController::class, 'capRecords'],
+        ]);
+        register_rest_route($ns, '/crm/deals/forecast', [
+            'methods'             => 'GET',
+            'callback'            => [CrmController::class, 'dealsForecast'],
+            'permission_callback' => [AuthController::class, 'capRecords'],
+        ]);
+        register_rest_route($ns, '/crm/deals/(?P<id>[\w-]+)', [
+            [
+                'methods'             => 'GET',
+                'callback'            => [CrmController::class, 'dealsShow'],
+                'permission_callback' => [AuthController::class, 'capRecords'],
+            ],
+            [
+                'methods'             => 'PUT,PATCH',
+                'callback'            => [CrmController::class, 'dealsUpdate'],
+                'permission_callback' => [AuthController::class, 'capRecords'],
+            ],
+            [
+                'methods'             => 'DELETE',
+                'callback'            => [CrmController::class, 'dealsDestroy'],
+                'permission_callback' => [AuthController::class, 'capRecords'],
+            ],
+        ]);
+        register_rest_route($ns, '/crm/deals/(?P<id>\d+)/move', [
+            'methods'             => 'POST',
+            'callback'            => [CrmController::class, 'dealsMove'],
+            'permission_callback' => [AuthController::class, 'capRecords'],
+        ]);
+        register_rest_route($ns, '/crm/deals/(?P<id>\d+)/assign', [
+            'methods'             => 'POST',
+            'callback'            => [CrmController::class, 'dealsAssign'],
+            'permission_callback' => [AuthController::class, 'capRecords'],
+        ]);
+
+        register_rest_route($ns, '/crm/pipelines', [
+            [
+                'methods'             => 'GET',
+                'callback'            => [CrmController::class, 'pipelinesIndex'],
+                'permission_callback' => [AuthController::class, 'capRecords'],
+            ],
+            [
+                'methods'             => 'POST',
+                'callback'            => [CrmController::class, 'pipelinesStore'],
+                'permission_callback' => [AuthController::class, 'capAdmin'],
+            ],
+        ]);
+        register_rest_route($ns, '/crm/pipelines/(?P<id>\d+)', [
+            [
+                'methods'             => 'GET',
+                'callback'            => [CrmController::class, 'pipelinesShow'],
+                'permission_callback' => [AuthController::class, 'capRecords'],
+            ],
+            [
+                'methods'             => 'PUT,PATCH',
+                'callback'            => [CrmController::class, 'pipelinesUpdate'],
+                'permission_callback' => [AuthController::class, 'capAdmin'],
+            ],
+            [
+                'methods'             => 'DELETE',
+                'callback'            => [CrmController::class, 'pipelinesDestroy'],
+                'permission_callback' => [AuthController::class, 'capAdmin'],
+            ],
+        ]);
+        register_rest_route($ns, '/crm/pipelines/(?P<id>\d+)/stages', [
+            [
+                'methods'             => 'GET',
+                'callback'            => [CrmController::class, 'pipelineStagesIndex'],
+                'permission_callback' => [AuthController::class, 'capRecords'],
+            ],
+            [
+                'methods'             => 'POST',
+                'callback'            => [CrmController::class, 'pipelineStagesStore'],
+                'permission_callback' => [AuthController::class, 'capAdmin'],
+            ],
+        ]);
+        register_rest_route($ns, '/crm/pipelines/(?P<id>\d+)/stages/(?P<stage_id>\d+)', [
+            [
+                'methods'             => 'PUT,PATCH',
+                'callback'            => [CrmController::class, 'pipelineStagesUpdate'],
+                'permission_callback' => [AuthController::class, 'capAdmin'],
+            ],
+            [
+                'methods'             => 'DELETE',
+                'callback'            => [CrmController::class, 'pipelineStagesDestroy'],
+                'permission_callback' => [AuthController::class, 'capAdmin'],
+            ],
+        ]);
+        register_rest_route($ns, '/crm/pipelines/(?P<id>\d+)/summary', [
+            'methods'             => 'GET',
+            'callback'            => [CrmController::class, 'pipelineSummary'],
+            'permission_callback' => [AuthController::class, 'capRecords'],
+        ]);
+
+        /* ------------------------------------------------------------------ *
+         *  CRM — Activities
+         * ------------------------------------------------------------------ */
+        register_rest_route($ns, '/crm/activities', [
+            [
+                'methods'             => 'GET',
+                'callback'            => [CrmController::class, 'activitiesIndex'],
+                'permission_callback' => [AuthController::class, 'capRecords'],
+            ],
+            [
+                'methods'             => 'POST',
+                'callback'            => [CrmController::class, 'activitiesStore'],
+                'permission_callback' => [AuthController::class, 'capRecords'],
+            ],
+        ]);
+        register_rest_route($ns, '/crm/activities/today', [
+            'methods'             => 'GET',
+            'callback'            => [CrmController::class, 'activitiesToday'],
+            'permission_callback' => [AuthController::class, 'capRecords'],
+        ]);
+        register_rest_route($ns, '/crm/activities/(?P<id>[\w-]+)', [
+            [
+                'methods'             => 'GET',
+                'callback'            => [CrmController::class, 'activitiesShow'],
+                'permission_callback' => [AuthController::class, 'capRecords'],
+            ],
+            [
+                'methods'             => 'PUT,PATCH',
+                'callback'            => [CrmController::class, 'activitiesUpdate'],
+                'permission_callback' => [AuthController::class, 'capRecords'],
+            ],
+            [
+                'methods'             => 'DELETE',
+                'callback'            => [CrmController::class, 'activitiesDestroy'],
+                'permission_callback' => [AuthController::class, 'capRecords'],
+            ],
+        ]);
+        register_rest_route($ns, '/crm/activities/(?P<id>\d+)/complete', [
+            'methods'             => 'POST',
+            'callback'            => [CrmController::class, 'activitiesComplete'],
+            'permission_callback' => [AuthController::class, 'capRecords'],
+        ]);
+        register_rest_route($ns, '/crm/activities/(?P<id>\d+)/cancel', [
+            'methods'             => 'POST',
+            'callback'            => [CrmController::class, 'activitiesCancel'],
+            'permission_callback' => [AuthController::class, 'capRecords'],
+        ]);
+
+        /* ------------------------------------------------------------------ *
+         *  Accounting
+         * ------------------------------------------------------------------ */
         register_rest_route($ns, '/accounting/accounts', [
             'methods'             => 'GET',
             'callback'            => [AccountingController::class, 'accounts'],
@@ -98,21 +421,9 @@ final class RestRouter
             'permission_callback' => [AuthController::class, 'capAccounting'],
         ]);
 
-        // CRM
-        register_rest_route($ns, '/crm/leads', [
-            [
-                'methods'             => 'GET',
-                'callback'            => [CrmController::class, 'leadsIndex'],
-                'permission_callback' => [AuthController::class, 'capRecords'],
-            ],
-            [
-                'methods'             => 'POST',
-                'callback'            => [CrmController::class, 'leadsStore'],
-                'permission_callback' => [AuthController::class, 'capRecords'],
-            ],
-        ]);
-
-        // ERP
+        /* ------------------------------------------------------------------ *
+         *  ERP
+         * ------------------------------------------------------------------ */
         register_rest_route($ns, '/erp/products', [
             [
                 'methods'             => 'GET',
@@ -138,7 +449,9 @@ final class RestRouter
             ],
         ]);
 
-        // HRM
+        /* ------------------------------------------------------------------ *
+         *  HRM
+         * ------------------------------------------------------------------ */
         register_rest_route($ns, '/hrm/employees', [
             [
                 'methods'             => 'GET',
@@ -157,14 +470,18 @@ final class RestRouter
             'permission_callback' => [AuthController::class, 'capHR'],
         ]);
 
-        // Tax (سامانه مؤدیان)
+        /* ------------------------------------------------------------------ *
+         *  Tax (سامانه مؤدیان)
+         * ------------------------------------------------------------------ */
         register_rest_route($ns, '/tax/invoices/(?P<id>\d+)/submit', [
             'methods'             => 'POST',
             'callback'            => [TaxController::class, 'submitInvoice'],
             'permission_callback' => [AuthController::class, 'capAccounting'],
         ]);
 
-        // Workflow
+        /* ------------------------------------------------------------------ *
+         *  Workflow
+         * ------------------------------------------------------------------ */
         register_rest_route($ns, '/workflows', [
             [
                 'methods'             => 'GET',
@@ -178,7 +495,9 @@ final class RestRouter
             ],
         ]);
 
-        // Audit
+        /* ------------------------------------------------------------------ *
+         *  Audit
+         * ------------------------------------------------------------------ */
         register_rest_route($ns, '/audit', [
             'methods'             => 'GET',
             'callback'            => [AuditController::class, 'index'],
