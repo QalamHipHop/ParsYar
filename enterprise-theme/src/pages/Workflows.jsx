@@ -416,7 +416,7 @@ function EditorView(props) {
                         }} className="px-1 py-0.5 bg-white dark:bg-neutral-800 border rounded text-[10px] cursor-pointer">
                           {e.label}
                         </span>
-                        <span onClick={() => removeEdge(e.id)} className="px-1 mr-1 text-red-500 cursor-pointer text-[10px]">✕</span>
+                        <span onClick={() => removeEdge(e.id)} className="px-1 mr-1 text-red-500 cursor-pointer text-[10px]">x</span>
                       </div>
                     </foreignObject>
                   </g>

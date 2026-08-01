@@ -120,7 +120,7 @@ final class WorkflowsPage
         $rows = Db::getResults('workflows', [], 'id DESC');
         echo '<div class="wrap"><h1>Workflows</h1><table class="widefat"><thead><tr><th>Name</th><th>Trigger</th><th>Active</th></tr></thead><tbody>';
         foreach ($rows as $r) {
-            echo '<tr><td>' . esc_html($r['name']) . '</td><td><code>' . esc_html($r['trigger_event']) . '</code></td><td>' . ((int) $r['is_active'] ? '✓' : '—') . '</td></tr>';
+            echo '<tr><td>' . esc_html($r['name']) . '</td><td><code>' . esc_html($r['trigger_event']) . '</code></td><td>' . ((int) $r['is_active'] ? 'v' : '—') . '</td></tr>';
         }
         echo '</tbody></table></div>';
     }

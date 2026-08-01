@@ -440,7 +440,7 @@ Activation launches an **AJAX-only, resumable, skippable** installer that persis
 | 17 | Import data | ورود داده | CSV/Excel with column-mapping UI |
 | 18 | Demo data | دادهٔ نمونه | seeds accounts, leads, products, invoices, employees |
 | 19 | Theme & branding | قالب و برندینگ | logo, login logo, email logo, favicon, primary font, accent color |
-| 20 | AI assistant | دستیار هوش مصنوعی | OpenAI / Anthropic / Local-LLM / Rasa / Hugging Face |
+| 20 | Smart Assistant | دستیار هوشمند | External Integrations / Rasa / Hugging Face |
 | 21 | Security | امنیت | 2FA required, IP allowlist, password policy, audit retention |
 | 22 | Backups & webhooks | پشتیبان‌گیری و Webhook | schedule (daily/weekly), destination (local/email/S3/FTP), keep-last, signing secret |
 | 23 | Done | پایان | summary + jump links to the dashboard |
@@ -955,7 +955,7 @@ npm test
 - [x] **1.7.0** — Customer Portal (PWA, magic link, JWT, WebPush, offline-first)
 - [x] **1.8.0** — Mobile app (React Native, FCM/APNs, biometric, deep link, 9 screens)
 - [x] **2.0.0** — Multi-tenant SaaS (Holding: tenants, branches, memberships, context)
-- [ ] **2.1.0** — AI assistant wiring (OpenAI / Anthropic / local LLM) inside the wizard
+- [ ] **2.1.0** — Smart Assistant wiring (OpenAI / Anthropic / local LLM) inside the wizard
 - [ ] **2.2.0** — Public API + OpenAPI 3.1 spec + SDK generator
 - [ ] **2.3.0** — Webhooks v2 (per-event signing, retry, dead-letter)
 - [ ] **2.4.0** — Real-time collaboration (Yjs + WebSocket gateway)

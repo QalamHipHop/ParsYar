@@ -12,11 +12,11 @@ import { useToasts, useUI } from '../store';
 import { cx } from '../lib/format.js';
 
 const TABS = [
-  { k: 'general',    l: 'عمومی',          icon: '⚙️' },
-  { k: 'localization', l: 'بومی‌سازی',     icon: '🌐' },
-  { k: 'notifications', l: 'اعلان‌ها',    icon: '🔔' },
-  { k: 'security',   l: 'امنیت',          icon: '🛡️' },
-  { k: 'data',       l: 'داده‌ها',        icon: '💾' },
+  { k: 'general',    l: 'عمومی',          icon: 'تنظیمات' },
+  { k: 'localization', l: 'بومی‌سازی',     icon: 'بومی‌سازی' },
+  { k: 'notifications', l: 'اعلان‌ها',    icon: 'اعلان‌ها' },
+  { k: 'security',   l: 'امنیت',          icon: 'امنیت' },
+  { k: 'data',       l: 'داده‌ها',        icon: 'داده‌ها' },
 ];
 
 export default function Settings() {
@@ -68,9 +68,9 @@ function GeneralTab({ themeMode, setTheme }) {
       <CardHeader title="ظاهر" subtitle="تم و حالت نمایش" />
       <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
         {[
-          { k: 'light', l: 'روشن',    ic: '☀️' },
-          { k: 'dark',  l: 'تیره',     ic: '🌙' },
-          { k: 'auto',  l: 'خودکار',  ic: '🌓' },
+          { k: 'light', l: 'روشن',    ic: 'روشن' },
+          { k: 'dark',  l: 'تیره',     ic: 'تیره' },
+          { k: 'auto',  l: 'خودکار',  ic: 'خودکار' },
         ].map((t) => (
           <button
             key={t.k}

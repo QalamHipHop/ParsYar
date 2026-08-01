@@ -277,7 +277,7 @@ function Editor({ editing, setEditing, sources, preview, error, loading, onPrevi
                 ) : (
                   <input className="input col-span-5" value={f.value ?? ''} onChange={e => setFilter(i, { value: e.target.value })} />
                 )}
-                <button className="btn-xs danger col-span-1" onClick={() => removeAt('filters', i)}>✕</button>
+                <button className="btn-xs danger col-span-1" onClick={() => removeAt('filters', i)}>x</button>
               </div>
             ))}
             {(!cfg.filters || cfg.filters.length === 0) && (
@@ -320,7 +320,7 @@ function Editor({ editing, setEditing, sources, preview, error, loading, onPrevi
                 )}
                 <input className="input col-span-5" placeholder="نام مستعار" value={m.alias}
                   onChange={e => setMetric(i, { alias: e.target.value })} />
-                <button className="btn-xs danger col-span-1" onClick={() => removeAt('metrics', i)}>✕</button>
+                <button className="btn-xs danger col-span-1" onClick={() => removeAt('metrics', i)}>x</button>
               </div>
             ))}
             {(!cfg.metrics || cfg.metrics.length === 0) && (

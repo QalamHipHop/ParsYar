@@ -134,7 +134,7 @@ $state_json = wp_json_encode($state);
                         <span class="pw-step-num"><?php echo parsyar_persian_digits((string) $i); ?></span>
                         <span class="pw-step-label"><?php echo esc_html(WizardState::STEP_LABELS[$i] ?? ''); ?></span>
                         <span class="pw-step-state" aria-hidden="true">
-                            <?php if ($state_attr === 'done'): ?>✓<?php elseif ($state_attr === 'skipped'): ?>–<?php elseif ($state_attr === 'current'): ?>●<?php endif; ?>
+                            <?php if ($state_attr === 'done'): ?>v<?php elseif ($state_attr === 'skipped'): ?>–<?php elseif ($state_attr === 'current'): ?>●<?php endif; ?>
                         </span>
                     </li>
                 <?php endfor; ?>
@@ -187,7 +187,7 @@ $state_json = wp_json_encode($state);
                     <ul class="pw-sys-list">
                         <?php foreach ($system as $key => $check): ?>
                             <li class="pw-sys-item <?php echo !empty($check['ok']) ? 'is-ok' : 'is-fail'; ?>">
-                                <span class="pw-sys-icon"><?php echo !empty($check['ok']) ? '✓' : '!'; ?></span>
+                                <span class="pw-sys-icon"><?php echo !empty($check['ok']) ? 'v' : '!'; ?></span>
                                 <span class="pw-sys-label"><?php echo esc_html($check['label'] ?? $key); ?></span>
                                 <span class="pw-sys-meta"><?php echo esc_html($check['value'] ?? ''); ?></span>
                             </li>
@@ -994,7 +994,7 @@ function parsyar_persian_digits(string $s): string {
         if (!stack) return;
         const el = document.createElement('div');
         el.className = 'pw-toast is-' + type;
-        const icon = type === 'success' ? '✓' : type === 'error' ? '✕' : type === 'warning' ? '!' : 'i';
+        const icon = type === 'success' ? 'v' : type === 'error' ? 'x' : type === 'warning' ? '!' : 'i';
         el.innerHTML = '<span class="pw-toast-icon">' + icon + '</span><span class="pw-toast-msg"></span>';
         el.querySelector('.pw-toast-msg').textContent = msg;
         stack.appendChild(el);
@@ -1238,7 +1238,7 @@ function parsyar_persian_digits(string $s): string {
             const res = await fetch(url, { method: 'POST', body: fd, credentials: 'same-origin' });
             const json = await res.json();
             if (json.success) {
-                toast('نصب با موفقیت تکمیل شد ✓', 'success', 5000);
+                toast('نصب با موفقیت تکمیل شد v', 'success', 5000);
                 setTimeout(() => {
                     if (json.data && json.data.redirect) window.location.href = json.data.redirect;
                 }, 800);

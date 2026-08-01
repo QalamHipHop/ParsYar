@@ -323,7 +323,7 @@ export default function ObjectBuilder() {
                       onClick={() => removeField(idx)}
                       className="p-1 text-danger-500 hover:text-danger-700"
                       aria-label="حذف"
-                    >✕</button>
+                    >x</button>
                   </div>
                 </div>
 

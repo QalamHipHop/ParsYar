@@ -33,7 +33,7 @@ const STEPS = [
   { n: 17, l: 'ورود داده',              d: 'CSV/Excel با نگاشت ستون‌ها',    grp: 'داده' },
   { n: 18, l: 'دادهٔ نمونه',            d: 'سرنخ، محصول، فاکتور، پرسنل',   grp: 'داده' },
   { n: 19, l: 'قالب و برندینگ',         d: 'لوگو، رنگ، فونت',               grp: 'ظاهر' },
-  { n: 20, l: 'دستیار هوش مصنوعی',      d: 'OpenAI / Anthropic / محلی',     grp: 'هوش' },
+  { n: 20, l: 'دستیار هوشمند',      d: 'سرویس‌های خارجی',     grp: 'هوش' },
   { n: 21, l: 'امنیت',                  d: '۲FA + IP allowlist',            grp: 'امنیت' },
   { n: 22, l: 'پشتیبان‌گیری و Webhook', d: 'زمانبندی + امضای HMAC',         grp: 'امنیت' },
   { n: 23, l: 'پایان',                  d: 'خلاصه و پرش به داشبورد',        grp: 'پایان' },
@@ -150,7 +150,7 @@ export default function WizardLauncher() {
                         : 'bg-ink-200 dark:bg-ink-800 text-ink-600 dark:text-ink-300'
                     )}
                   >
-                    {isDone ? '✓' : englishToPersianDigits(s.n)}
+                    {isDone ? 'v' : englishToPersianDigits(s.n)}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="text-sm font-bold truncate">{s.l}</div>
@@ -163,7 +163,7 @@ export default function WizardLauncher() {
                         className="text-[11px] px-2 py-1 rounded-md border border-ink-200 dark:border-ink-700 hover:bg-ink-50 dark:hover:bg-ink-900"
                         title="علامت‌گذاری به‌عنوان انجام‌شده"
                       >
-                        ✓
+                        v
                       </button>
                     )}
                     <button

@@ -3,8 +3,8 @@ import { useToasts } from '../store';
 import { cx } from '../lib/format.js';
 
 const ICONS = {
-  success: '✓',
-  error:   '✕',
+  success: 'v',
+  error:   'x',
   warning: '!',
   info:    'i',
 };

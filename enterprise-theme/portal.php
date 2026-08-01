@@ -16,7 +16,7 @@ get_header();
 $dist_html = __DIR__ . '/portal-pwa/dist/index.html';
 if (!file_exists($dist_html)) {
     echo '<div style="max-width:640px;margin:80px auto;padding:32px;font-family:Vazirmatn,system-ui,sans-serif;text-align:center;background:#fef3c7;border:1px solid #f59e0b;border-radius:12px;color:#92400e;">';
-    echo '<h1 style="margin:0 0 12px;font-size:20px;">⚠️ پورتال هنوز بیلد نشده است</h1>';
+    echo '<h1 style="margin:0 0 12px;font-size:20px;">هشدار پورتال هنوز بیلد نشده است</h1>';
     echo '<p style="margin:0 0 8px;line-height:1.8;">برای فعال‌سازی پورتال مشتریان، ابتدا در مسیر <code>wp-content/themes/enterprise-theme/portal-pwa</code> دستور زیر را اجرا کنید:</p>';
     echo '<pre style="background:#fff;padding:12px;border-radius:8px;text-align:left;direction:ltr;font-size:13px;">npm install && npm run build</pre>';
     echo '<p style="margin:12px 0 0;font-size:13px;">سپس این صفحه را رفرش کنید.</p>';

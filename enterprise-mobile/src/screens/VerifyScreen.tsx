@@ -28,7 +28,7 @@ export default function VerifyScreen({ route, navigation }: any) {
         </>
       ) : error ? (
         <>
-          <Text style={s.errIcon}>⚠️</Text>
+          <Text style={s.errIcon}>هشدار</Text>
           <Text style={[s.txt, { color: theme.colors.danger }]}>{error}</Text>
           <Text style={[s.txt, { color: theme.colors.ink2, fontSize: 13, marginTop: 8 }]} onPress={() => { dispatch(clearError()); navigation.goBack(); }}>
             بازگشت

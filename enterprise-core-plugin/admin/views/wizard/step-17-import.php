@@ -31,5 +31,5 @@ defined('ABSPATH') || exit;
 </div>
 
 <p class="desc" style="margin-top:14px;">
-    💡 نکته: برای فایل‌های بزرگ یا ورودهای دوره‌ای، از مسیر <code>wp parsyar import &lt;file&gt;</code> در WP-CLI استفاده کنید.
+    نکته نکته: برای فایل‌های بزرگ یا ورودهای دوره‌ای، از مسیر <code>wp parsyar import &lt;file&gt;</code> در WP-CLI استفاده کنید.
 </p>

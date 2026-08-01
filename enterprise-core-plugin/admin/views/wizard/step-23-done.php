@@ -107,21 +107,21 @@ $state = $state ?? WizardState::load();
 <h3 style="font-size:15px; font-weight:800; margin:24px 0 12px;">قدم‌های بعدی</h3>
 <div class="pw-done-actions">
     <a class="pw-done-action" href="<?php echo esc_url(admin_url('admin.php?page=enterprise')); ?>">
-        <div class="pw-done-action-icon">📊</div>
+        <div class="pw-done-action-icon"></div>
         <div class="pw-done-action-text">
             <b>داشبورد Enterprise</b>
             <span>آمار لحظه‌ای، KPI، و نمودارها</span>
         </div>
     </a>
     <a class="pw-done-action" href="<?php echo esc_url(admin_url('admin.php?page=enterprise-objects')); ?>">
-        <div class="pw-done-action-icon">📦</div>
+        <div class="pw-done-action-icon">محصولات</div>
         <div class="pw-done-action-text">
             <b>اشیاء سفارشی</b>
             <span>تعریف entityهای جدید بدون کد</span>
         </div>
     </a>
     <a class="pw-done-action" href="<?php echo esc_url(home_url('/enterprise')); ?>" target="_blank">
-        <div class="pw-done-action-icon">⚡</div>
+        <div class="pw-done-action-icon">گردش کار</div>
         <div class="pw-done-action-text">
             <b>پنل کاربری (SPA)</b>
             <span>رابط اصلی برای کاربران</span>
@@ -135,14 +135,14 @@ $state = $state ?? WizardState::load();
         </div>
     </a>
     <a class="pw-done-action" href="https://github.com/QalamHipHop/ParsYar" target="_blank" rel="noopener">
-        <div class="pw-done-action-icon">📚</div>
+        <div class="pw-done-action-icon"></div>
         <div class="pw-done-action-text">
             <b>مستندات</b>
             <span>github.com/QalamHipHop/ParsYar</span>
         </div>
     </a>
     <a class="pw-done-action" href="<?php echo esc_url(admin_url('admin.php?page=enterprise-system')); ?>">
-        <div class="pw-done-action-icon">🛠️</div>
+        <div class="pw-done-action-icon">تنظیمات</div>
         <div class="pw-done-action-text">
             <b>سلامت سیستم</b>
             <span>بررسی وضعیت سرویس‌ها و ماژول‌ها</span>
@@ -151,7 +151,7 @@ $state = $state ?? WizardState::load();
 </div>
 
 <div class="pw-banner info" style="margin-top:20px;">
-    💡 برای اعمال تغییرات، دکمهٔ «اعمال و پایان» را بزنید. جداول، حساب‌های پیش‌فرض، و در صورت انتخاب، دادهٔ دمو ایجاد می‌شود.
+    نکته برای اعمال تغییرات، دکمهٔ «اعمال و پایان» را بزنید. جداول، حساب‌های پیش‌فرض، و در صورت انتخاب، دادهٔ دمو ایجاد می‌شود.
 </div>
 
 <style>

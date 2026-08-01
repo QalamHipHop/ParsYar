@@ -14,11 +14,11 @@ use Enterprise\Admin\WizardState;
 
 $mode = $state['mode'] ?? 'micro';
 $modes = [
-    'solo'       => ['Solo',       'فریلنسرها و فروشندگان',           'تک‌کاربره',     '👤'],
-    'micro'      => ['Micro',      'کمتر از ۱۰ کارمند، یک شعبه',     'تک‌مستاجر',     '🏪'],
-    'smb'        => ['SMB',        '۱۰ تا ۱۰۰ کارمند',                'چندشعبه',       '🏢'],
-    'enterprise' => ['Enterprise', 'بیش از ۱۰۰ کارمند، چند منطقه',    'چندمستاجر',     '🏛️'],
-    'holding'    => ['Holding',    'کنسرسیوم، چند شخصیت حقوقی',      'چندشرکت',       '🏙️'],
+    'solo'       => ['Solo',       'فریلنسرها و فروشندگان',           'تک‌کاربره',     ''],
+    'micro'      => ['Micro',      'کمتر از ۱۰ کارمند، یک شعبه',     'تک‌مستاجر',     ''],
+    'smb'        => ['SMB',        '۱۰ تا ۱۰۰ کارمند',                'چندشعبه',       ''],
+    'enterprise' => ['Enterprise', 'بیش از ۱۰۰ کارمند، چند منطقه',    'چندمستاجر',     ''],
+    'holding'    => ['Holding',    'کنسرسیوم، چند شخصیت حقوقی',      'چندشرکت',       ''],
 ];
 $summary = $summary ?? ['ok' => 0, 'fail' => 0, 'warn' => 0];
 $system  = $system ?? [];
@@ -67,7 +67,7 @@ $summary = ['ok' => $ok, 'fail' => $fail, 'total' => $total];
 <div class="pw-check-grid" style="margin-top:14px;">
     <?php foreach ($system as $key => $check): ?>
         <div class="pw-check <?php echo !empty($check['ok']) ? 'ok' : 'fail'; ?>">
-            <span class="pw-check-icon"><?php echo !empty($check['ok']) ? '✓' : '!'; ?></span>
+            <span class="pw-check-icon"><?php echo !empty($check['ok']) ? 'v' : '!'; ?></span>
             <div class="pw-check-meta">
                 <b><?php echo esc_html($check['label'] ?? $key); ?></b>
                 <span><?php echo esc_html($check['value'] ?? ''); ?></span>

@@ -64,7 +64,7 @@ function MainTabs() {
     >
       <Tab.Screen name="Dashboard" component={DashboardScreen} options={{
         title: t('nav.dashboard'),
-        tabBarIcon: ({ focused }) => <TabIcon label="🏠" focused={focused} />,
+        tabBarIcon: ({ focused }) => <TabIcon label="داشبورد" focused={focused} />,
       }} />
       <Tab.Screen name="Invoices" component={InvoicesScreen} options={{
         title: t('nav.invoices'),
@@ -72,15 +72,15 @@ function MainTabs() {
       }} />
       <Tab.Screen name="Orders" component={OrdersScreen} options={{
         title: t('nav.orders'),
-        tabBarIcon: ({ focused }) => <TabIcon label="📦" focused={focused} />,
+        tabBarIcon: ({ focused }) => <TabIcon label="محصولات" focused={focused} />,
       }} />
       <Tab.Screen name="Payments" component={PaymentsScreen} options={{
         title: t('nav.payments'),
-        tabBarIcon: ({ focused }) => <TabIcon label="💳" focused={focused} />,
+        tabBarIcon: ({ focused }) => <TabIcon label="پرداخت‌ها" focused={focused} />,
       }} />
       <Tab.Screen name="Tickets" component={TicketsScreen} options={{
         title: t('nav.tickets'),
-        tabBarIcon: ({ focused }) => <TabIcon label="💬" focused={focused} />,
+        tabBarIcon: ({ focused }) => <TabIcon label="تیکت‌ها" focused={focused} />,
       }} />
     </Tab.Navigator>
   );

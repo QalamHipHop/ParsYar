@@ -202,10 +202,10 @@ export default function Profile() {
         <CardHeader title="دسترسی سریع" />
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
           {[
-            { to: '/settings',      l: 'تنظیمات',   ic: '⚙️' },
-            { to: '/notifications', l: 'اعلان‌ها',  ic: '🔔' },
+            { to: '/settings',      l: 'تنظیمات',   ic: 'تنظیمات' },
+            { to: '/notifications', l: 'اعلان‌ها',  ic: 'اعلان‌ها' },
             { to: '/wizard',        l: 'ویزارد نصب', ic: '🪄' },
-            { to: '/audit',         l: 'حسابرسی',   ic: '🛡️' },
+            { to: '/audit',         l: 'حسابرسی',   ic: 'امنیت' },
           ].map((q) => (
             <Link
               key={q.to}

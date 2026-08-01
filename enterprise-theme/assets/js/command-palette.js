@@ -24,7 +24,7 @@
         { icon: '▤', label: 'صندوق',           href: '/?p=inbox',      group: 'main' },
         { icon: '◐', label: 'فروش',            href: '/?p=sales',      group: 'business' },
         { icon: '◫', label: 'انبار',           href: '/?p=inventory',  group: 'business' },
-        { icon: '✦', label: 'بازاریابی',       href: '/?p=marketing',  group: 'business' },
+        { icon: 'بیزنس', label: 'بازاریابی',       href: '/?p=marketing',  group: 'business' },
         { icon: '⌘', label: 'اتوماسیون',       href: '/?p=automation', group: 'business' },
         { icon: '◢', label: 'گزارش‌ها',        href: '/?p=reports',    group: 'ops' },
         { icon: '◭', label: 'منابع انسانی',    href: '/?p=hr',         group: 'ops' },

@@ -27,7 +27,7 @@
     }
 
     function iconFor(kind) {
-        return { positive: '✓', warning: '!', danger: '×', info: 'i' }[kind] || 'i';
+        return { positive: 'v', warning: '!', danger: '×', info: 'i' }[kind] || 'i';
     }
 
     function show(message, opts) {

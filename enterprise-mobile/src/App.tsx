@@ -53,7 +53,7 @@ function LockScreen({ onUnlock }: { onUnlock: () => void }) {
     <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: lightTheme.colors.surface1, padding: 24 }}>
       <Card>
         <Text style={{ fontSize: 20, fontWeight: '700', textAlign: 'center', color: lightTheme.colors.ink0 }}>
-          🔒 قفل برنامه
+          قفل قفل برنامه
         </Text>
         <Text style={{ marginTop: 8, color: lightTheme.colors.ink2, textAlign: 'center' }}>
           برای ادامه، لطفاً با اثر انگشت یا چهره تأیید کنید.

@@ -23,7 +23,7 @@ export default function ProfileScreen({ navigation }: any) {
 
       <Card>
         <Pressable onPress={() => navigation.navigate('Settings')} style={s.row}>
-          <Text style={s.rowText}>⚙️ {t('profile.settings')}</Text>
+          <Text style={s.rowText}>تنظیمات {t('profile.settings')}</Text>
           <Text style={s.chev}>‹</Text>
         </Pressable>
       </Card>

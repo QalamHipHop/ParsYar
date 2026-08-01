@@ -8,14 +8,14 @@
   - بازنویسی کامل `admin/views/wizard/layout.php` با سیستم طراحی مدرن (glassmorphism + neo-brutalist)
   - **پس‌زمینهٔ پویا** با orbهای شناور و گرید subtle (GPU-friendly animations)
   - **Header شیشه‌ای** با backdrop-blur + saturate، sticky با shadow پویا
-  - **Progress bar متحرک** با shimmer effect، آیکون‌های status (✓/–/●)، شمارندهٔ فارسی
+  - **Progress bar متحرک** با shimmer effect، آیکون‌های status (v/–/●)، شمارندهٔ فارسی
   - **Sidebar مراحل** با ۲۳ step، ۴ حالت (current/done/skip/pending)، انیمیشن hover با translate
   - **Card اصلی** با glow پویا، ۲ دکمهٔ neo-brutalist (قبلی/رد/بعدی)، status badge
-  - **System Check side card** با آیکون‌های ✓/! و meta info
+  - **System Check side card** با آیکون‌های v/! و meta info
   - **Tips side card** با لیست راهنما
   - **Toast system** با ۴ نوع (success/error/warning/info)، slide-up + slide-down animations
   - **Step-01 (Welcome)** بازطراحی شد: mode grid با آیکون + system overview با stats (ok/fail/total)
-  - **Step-23 (Done)** بازطراحی شد: celebration hero با ✓ انیمیشنی، stats grid، summary card، ۶ quick action cards
+  - **Step-23 (Done)** بازطراحی شد: celebration hero با v انیمیشنی، stats grid، summary card، ۶ quick action cards
   - **JavaScript framework** برای navigation: AJAX ذخیرهٔ خودکار، prev/next/skip، apply در انتها
   - **Chip groups** با single-select + data binding به hidden input (`data-pw-chip-group`)
   - **Mode grid** با ۵ mode + click-to-select (`data-pw-mode-grid`)

@@ -13,9 +13,9 @@ $wcActive = class_exists('WooCommerce');
 ?>
 <div class="pw-banner <?php echo $wcActive ? 'success' : 'warning'; ?>">
     <?php if ($wcActive): ?>
-        ✓ افزونهٔ WooCommerce شناسایی شد. می‌توانید همگام‌سازی دوطرفه فعال کنید.
+        v افزونهٔ WooCommerce شناسایی شد. می‌توانید همگام‌سازی دوطرفه فعال کنید.
     <?php else: ?>
-        ⚠ افزونهٔ WooCommerce نصب نیست. این مرحله اختیاری است؛ در صورت نصب بعدی، از تنظیمات فعال کنید.
+         افزونهٔ WooCommerce نصب نیست. این مرحله اختیاری است؛ در صورت نصب بعدی، از تنظیمات فعال کنید.
     <?php endif; ?>
 </div>
 

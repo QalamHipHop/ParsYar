@@ -77,4 +77,4 @@ npm test
 - Matrix: `#parsyar:matrix.org`
 - ایمیل: `qalam@parsyar.dev`
 
-— سپاس از مشارکت تو 🌙
+— سپاس از مشارکت تو تیره

@@ -52,7 +52,7 @@ export default function LoginScreen() {
             <Input label={t('login.email')} value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" autoCorrect={false} />
             <Input label={t('login.device')} value={device} onChangeText={setDevice} placeholder="iPhone 15 Pro" />
             {error ? <Text style={{ color: theme.colors.danger, fontSize: 12, marginBottom: 8 }}>{error}</Text> : null}
-            <Button title={sent ? `✓ ${t('login.sent')}` : t('login.send')} onPress={onSend} loading={loading} disabled={sent && resendIn > 0} />
+            <Button title={sent ? `v ${t('login.sent')}` : t('login.send')} onPress={onSend} loading={loading} disabled={sent && resendIn > 0} />
             {sent && resendIn > 0 && (
               <Text style={{ color: theme.colors.ink2, fontSize: 12, textAlign: 'center', marginTop: 8 }}>
                 {t('login.resendIn', { n: resendIn })}

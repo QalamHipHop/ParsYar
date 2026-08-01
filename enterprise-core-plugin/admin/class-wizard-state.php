@@ -39,7 +39,7 @@ final class WizardState
         17 => 'ورود داده (Import)',
         18 => 'دادهٔ نمونه (Demo)',
         19 => 'قالب و برندینگ',
-        20 => 'دستیار هوش مصنوعی',
+        20 => 'دستیار هوشمند',
         21 => 'امنیت',
         22 => 'پشتیبان‌گیری و Webhook',
         23 => 'پایان',
@@ -241,7 +241,7 @@ final class WizardState
                 'email_footer'  => '',
             ],
 
-            // Step 20: AI assistant
+            // Step 20: Smart Assistant
             'ai' => [
                 'enabled'      => false,
                 'provider'     => 'openai', // openai|anthropic|local|rasa|huggingface

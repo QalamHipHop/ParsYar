@@ -78,7 +78,7 @@ export default function Dashboard() {
         <div>
           <p className="text-xs font-bold tracking-widest uppercase text-ink-500 dark:text-ink-400">داشبورد</p>
           <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-ink-900 dark:text-ink-50 mt-1">
-            خوش آمدید 👋
+            خوش آمدید 
           </h1>
           <p className="text-sm text-ink-500 dark:text-ink-400 mt-1">
             نمایی کلی از عملکرد سازمان شما در <span className="font-semibold text-ink-700 dark:text-ink-200">{formatJalali(new Date().toISOString(), { year: 'numeric', month: 'long' })}</span>

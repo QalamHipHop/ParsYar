@@ -53,7 +53,7 @@ final class PortalPage
                 <table class="widefat" style="border:none;">
                     <tbody>
                         <tr><td style="width:240px;"><strong>آدرس پورتال</strong></td><td><a href="<?php echo esc_url($portal_url); ?>" target="_blank"><?php echo esc_html($portal_url); ?></a></td></tr>
-                        <tr><td><strong>JWT Secret</strong></td><td><?php echo $has_secret ? '✅ تنظیم شده' : '❌ تنظیم نشده (در اولین درخواست ساخته می‌شود)'; ?></td></tr>
+                        <tr><td><strong>JWT Secret</strong></td><td><?php echo $has_secret ? ' تنظیم شده' : ' تنظیم نشده (در اولین درخواست ساخته می‌شود)'; ?></td></tr>
                         <tr><td><strong>VAPID Public Key</strong></td><td><code style="font-size:11px;word-break:break-all;direction:ltr;"><?php echo esc_html($vapid_pub); ?></code></td></tr>
                         <tr><td><strong>REST namespace</strong></td><td><code><?php echo esc_html(rest_url('enterprise/v1/portal/')); ?></code></td></tr>
                     </tbody>

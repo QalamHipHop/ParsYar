@@ -21,9 +21,9 @@ const DEMO_NOTIFS = [
 const TYPE_META = {
   invoice:  { v: 'warning', ic: '🧾' },
   lead:     { v: 'info',    ic: '🧲' },
-  workflow: { v: 'success', ic: '⚡' },
-  ticket:   { v: 'brand',   ic: '🎫' },
-  system:   { v: 'default', ic: '⚙️' },
+  workflow: { v: 'success', ic: 'گردش کار' },
+  ticket:   { v: 'brand',   ic: 'تیکت' },
+  system:   { v: 'default', ic: 'تنظیمات' },
 };
 
 export default function Notifications() {
@@ -104,9 +104,9 @@ export default function Notifications() {
           { k: 'unread',   l: 'خوانده‌نشده' },
           { k: 'invoice',  l: '🧾 فاکتور' },
           { k: 'lead',     l: '🧲 سرنخ' },
-          { k: 'workflow', l: '⚡ گردش کار' },
-          { k: 'ticket',   l: '🎫 تیکت' },
-          { k: 'system',   l: '⚙️ سیستم' },
+          { k: 'workflow', l: 'گردش کار گردش کار' },
+          { k: 'ticket',   l: 'تیکت تیکت' },
+          { k: 'system',   l: 'تنظیمات سیستم' },
         ].map((f) => (
           <button
             key={f.k}
@@ -132,7 +132,7 @@ export default function Notifications() {
         </div>
       ) : filtered.length === 0 ? (
         <Card variant="glass" className="text-center py-12">
-          <div className="text-4xl opacity-30">🔕</div>
+          <div className="text-4xl opacity-30">بدون اعلان</div>
           <p className="mt-2 text-sm text-ink-500 dark:text-ink-400">اعلانی برای نمایش وجود ندارد.</p>
         </Card>
       ) : (
@@ -167,7 +167,7 @@ export default function Notifications() {
                   onClick={(e) => { e.stopPropagation(); remove(n.id); }}
                   className="text-ink-400 hover:text-danger-500 px-2"
                   aria-label="حذف"
-                >✕</button>
+                >x</button>
               </div>
             );
           })}
